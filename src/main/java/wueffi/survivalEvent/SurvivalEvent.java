@@ -39,6 +39,9 @@ public final class SurvivalEvent extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new LocationListener(this), this);
         LOGGER.info("LocationHandler initialized!");
 
+        ModManager.init(this);
+        LOGGER.info("ModManager initialized!");
+
         EventCommands handler = new EventCommands();
         for (String cmd : List.of("playtime", "check", "start", "end", "leaderboard")) {
             var pluginCmd = getCommand(cmd);

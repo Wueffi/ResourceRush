@@ -72,6 +72,10 @@ public final class PlaytimeManager {
             }
 
             for (Player player : world.getPlayers()) {
+                if (ModManager.isModerator(player.getName())) {
+                    return;
+                }
+
                 UUID uuid = player.getUniqueId();
 
                 String lastDate = playerDates.getOrDefault(uuid, todayStr);

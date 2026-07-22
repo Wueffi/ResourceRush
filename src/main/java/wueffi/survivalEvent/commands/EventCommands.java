@@ -52,8 +52,8 @@ public final class EventCommands implements CommandExecutor, TabCompleter {
             sender.sendMessage("§cPlayer '" + args[0] + "' is not online.");
             return true;
         }
-        long seconds = PlaytimeManager.getSecondsToday(target);
-        sender.sendMessage("§e" + target.getName() + "§f's playtime: §a" + formatSeconds(seconds));
+        double score = PlayerPointsStore.get(target.identity().uuid());
+        sender.sendMessage("§e" + target.getName() + "§f's score: §a" + score);
         return true;
     }
 

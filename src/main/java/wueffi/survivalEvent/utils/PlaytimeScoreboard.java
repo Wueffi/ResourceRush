@@ -58,7 +58,7 @@ public final class PlaytimeScoreboard {
                 viewIndex = (viewIndex + 1) % VIEW_COUNT;
             }
 
-            for (Player player : world.getPlayers()) {
+            for (Player player : Bukkit.getOnlinePlayers()) {
                 update(player);
             }
         }, TICK_INTERVAL, TICK_INTERVAL);
@@ -133,7 +133,6 @@ public final class PlaytimeScoreboard {
 
     private static void buildLeastCollected(Objective obj, int base) {
         List<Map.Entry<String, Integer>> entries = new ArrayList<>(globalItemTotals.entrySet());
-        entries.removeIf(e -> e.getValue() < 1);
         entries.sort(Map.Entry.comparingByValue());
 
         int count = Math.min(entries.size(), 5);
