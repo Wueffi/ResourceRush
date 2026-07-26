@@ -2,8 +2,10 @@ package wueffi.survivalEvent.utils;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.block.BlockState;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Entity;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -34,47 +36,73 @@ public final class ContainerHandler {
         config = YamlConfiguration.loadConfiguration(configFile);
     }
 
-    public static void addContainer(UUID uuid, Location loc) {
-        String key = "containers." + uuid;
+    public static void addContainer(UUID uuid, String key) {
+        String path = "containers." + uuid;
 
-        List<String> list = config.getStringList(key);
-        String entry = toKey(loc);
-        if (list.contains(entry)) return;
+        List<String> list = config.getStringList(path);
+        if (list.contains(key)) return;
 
-        list.add(entry);
-        config.set(key, list);
+        list.add(key);
+        config.set(path, list);
         save();
     }
 
-    public static void removeContainer(Location loc) {
+    public static void removeContainer(String key) {
+        if (key == null) return;
         if (!config.isConfigurationSection("containers")) return;
-        String entry = toKey(loc);
 
         for (String uuid : config.getConfigurationSection("containers").getKeys(false)) {
-            String key = "containers." + uuid;
+            String path = "containers." + uuid;
 
-            List<String> list = config.getStringList(key);
-            if (!list.remove(entry)) continue;
+            List<String> list = config.getStringList(path);
+            if (!list.remove(key)) continue;
 
-            config.set(key, list);
+            config.set(path, list);
             save();
             return;
         }
     }
 
+    public static UUID getOwner(String key) {
+        if (key == null) return null;
+        if (!config.isConfigurationSection("containers")) return null;
+
+        for (String uuid : config.getConfigurationSection("containers").getKeys(false)) {
+            List<String> list = config.getStringList("containers." + uuid);
+            if (list.contains(key)) {
+                return UUID.fromString(uuid);
+            }
+        }
+        return null;
+    }
+
     public static List<Location> getContainersPerPlayer(UUID uuid) {
         if (config == null) return List.of();
         return config.getStringList("containers." + uuid).stream()
+                .filter(s -> s.startsWith("block:"))
                 .map(ContainerHandler::fromKey)
                 .collect(Collectors.toList());
     }
 
-    private static String toKey(Location loc) {
-        return loc.getWorld().getName() + ":" + loc.getBlockX() + ":" + loc.getBlockY() + ":" + loc.getBlockZ();
+    public static String keyFor(Object holderOrLocationSource) {
+        if (holderOrLocationSource instanceof Location loc) {
+            return keyFor(loc);
+        }
+        if (holderOrLocationSource instanceof BlockState blockState) {
+            return keyFor(blockState.getLocation());
+        }
+        if (holderOrLocationSource instanceof Entity entity) {
+            return "entity:" + entity.getUniqueId();
+        }
+        return null;
+    }
+
+    public static String keyFor(Location loc) {
+        return "block:" + loc.getWorld().getName() + ":" + loc.getBlockX() + ":" + loc.getBlockY() + ":" + loc.getBlockZ();
     }
 
     private static Location fromKey(String s) {
-        String[] p = s.split(":");
+        String[] p = s.substring("block:".length()).split(":");
         return new Location(Bukkit.getWorld(p[0]), Integer.parseInt(p[1]), Integer.parseInt(p[2]), Integer.parseInt(p[3]));
     }
 

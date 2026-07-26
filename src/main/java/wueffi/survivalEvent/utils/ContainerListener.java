@@ -8,6 +8,10 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.event.vehicle.VehicleDestroyEvent;
+import org.bukkit.inventory.InventoryHolder;
 
 public class ContainerListener implements Listener {
 
@@ -21,7 +25,7 @@ public class ContainerListener implements Listener {
         container.customName(Component.text(player.getName()));
         container.update();
 
-        ContainerHandler.addContainer(player.getUniqueId(), block.getLocation());
+        ContainerHandler.addContainer(player.getUniqueId(), ContainerHandler.keyFor(block.getLocation()));
         player.sendMessage("§aYou claimed this container!");
     }
 
@@ -30,6 +34,34 @@ public class ContainerListener implements Listener {
         Block block = event.getBlock();
         if (!(block.getState() instanceof Container)) return;
 
-        ContainerHandler.removeContainer(block.getLocation());
+        ContainerHandler.removeContainer(ContainerHandler.keyFor(block.getLocation()));
+    }
+
+    @EventHandler
+    public void onInventoryOpen(InventoryOpenEvent event) {
+        InventoryHolder holder = event.getInventory().getHolder();
+        if (!(holder instanceof Container container)) return;
+        if (!(event.getPlayer() instanceof Player player)) return;
+
+        String key = ContainerHandler.keyFor(container);
+        if (key == null) return;
+
+        if (ContainerHandler.getOwner(key) != null) return;
+
+        ContainerHandler.addContainer(player.getUniqueId(), key);
+
+        player.sendMessage("§aYou claimed this container!");
+    }
+
+    @EventHandler
+    public void onVehicleDestroy(VehicleDestroyEvent event) {
+        if (!(event.getVehicle() instanceof Container)) return;
+        ContainerHandler.removeContainer(ContainerHandler.keyFor(event.getVehicle()));
+    }
+
+    @EventHandler
+    public void onEntityDeath(EntityDeathEvent event) {
+        if (!(event.getEntity() instanceof Container)) return;
+        ContainerHandler.removeContainer(ContainerHandler.keyFor(event.getEntity()));
     }
 }
