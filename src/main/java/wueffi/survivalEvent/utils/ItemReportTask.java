@@ -176,52 +176,66 @@ public final class ItemReportTask {
     }
 
     private static void run() {
-        World world = Bukkit.getWorld("world2");
-        if (world == null) return;
-
         String timestamp = LocalDateTime.now().format(TIMESTAMP_FMT);
+
         Map<UUID, Map<String, Integer>> playerCounts = new LinkedHashMap<>();
+        Map<UUID, String> playerNames = new LinkedHashMap<>();
 
-        for (Player player : world.getPlayers()) {
-            if (ModManager.isModerator(player.getName())) {
-                return;
+        for (String worldName : List.of("world", "world_nether", "world_the_end" )) {
+            World world = Bukkit.getWorld(worldName);
+            if (world == null) continue;
+
+            for (Player player : world.getPlayers()) {
+                if (ModManager.isModerator(player.getName())) {
+                    continue;
+                }
+
+                UUID uuid = player.getUniqueId();
+
+                Map<String, Integer> counts = playerCounts.computeIfAbsent(
+                        uuid,
+                        k -> zeroCounts()
+                );
+
+                playerNames.put(uuid, player.getName());
+
+                addCounts(player.getInventory(), counts);
+
+                for (Location loc : ContainerHandler.getContainersPerPlayer(uuid)) {
+                    Block block = loc.getBlock();
+
+                    if (!(block.getState() instanceof Container container)) {
+                        continue;
+                    }
+
+                    addCounts(container.getInventory(), counts);
+                }
             }
-
-            Map<String, Integer> counts = zeroCounts();
-            addCounts(player.getInventory(), counts);
-
-            for (Location loc : ContainerHandler.getContainersPerPlayer(player.getUniqueId())) {
-                Block block = loc.getBlock();
-                if (!(block.getState() instanceof Container container)) continue;
-                addCounts(container.getInventory(), counts);
-            }
-            playerCounts.put(player.getUniqueId(), counts);
         }
 
         Map<String, Map<UUID, Integer>> itemMatrix = new LinkedHashMap<>();
 
         for (String key : TRACKED.keySet()) {
             Map<UUID, Integer> row = new LinkedHashMap<>();
-            for (Map.Entry<UUID, Map<String, Integer>> e : playerCounts.entrySet()) {
-                row.put(e.getKey(), e.getValue().get(key));
+
+            for (Map.Entry<UUID, Map<String, Integer>> entry : playerCounts.entrySet()) {
+                row.put(entry.getKey(), entry.getValue().get(key));
             }
+
             itemMatrix.put(key, row);
         }
 
         Map<UUID, Double> scores = calculateScores(itemMatrix);
 
-        for (Player player : world.getPlayers()) {
-            if (ModManager.isModerator(player.getName())) {
-                return;
-            }
+        for (Map.Entry<UUID, Map<String, Integer>> entry : playerCounts.entrySet()) {
+            UUID uuid = entry.getKey();
 
-            UUID uuid = player.getUniqueId();
             double pts = scores.getOrDefault(uuid, 0.0);
+            String name = playerNames.getOrDefault(uuid, "Unknown");
 
-            Map<String, Integer> counts = playerCounts.get(uuid);
-            PlayerPointsStore.set(uuid, player.getName(), pts);
+            PlayerPointsStore.set(uuid, name, pts);
 
-            writeRow(idCounter.getAndIncrement(), player.getName(), timestamp, pts, counts);
+            writeRow(idCounter.getAndIncrement(), name, timestamp, pts, entry.getValue());
         }
 
         PlayerPointsStore.save();
@@ -246,12 +260,29 @@ public final class ItemReportTask {
         return scores;
     }
 
+    static Map<String, Integer> scanAllWorlds() {
+        Map<String, Integer> totals = zeroCounts();
+
+        for (String worldName : List.of( "world", "world_nether", "world_the_end")) {
+            World world = Bukkit.getWorld(worldName);
+            if (world == null) continue;
+
+            Map<String, Integer> worldTotals = scanWorld(world);
+
+            for (Map.Entry<String, Integer> e : worldTotals.entrySet()) {
+                totals.merge(e.getKey(), e.getValue(), Integer::sum);
+            }
+        }
+
+        return totals;
+    }
+
     static Map<String, Integer> scanWorld(World world) {
         Map<String, Integer> totals = zeroCounts();
 
         for (Player player : world.getPlayers()) {
             if (ModManager.isModerator(player.getName())) {
-                break;
+                continue;
             }
 
             addCounts(player.getInventory(), totals);

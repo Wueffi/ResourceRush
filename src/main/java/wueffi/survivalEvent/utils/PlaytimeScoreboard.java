@@ -47,12 +47,9 @@ public final class PlaytimeScoreboard {
 
     private static void startUpdateTask() {
         updateTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            World world = Bukkit.getWorld("world2");
-            if (world == null) return;
-
             tickCounter++;
             if (tickCounter == 1 || tickCounter % SNAPSHOT_INTERVAL == 0) {
-                refreshSnapshot(world);
+                refreshSnapshot();
             }
             if (tickCounter > 1 && tickCounter % 5 == 0) {
                 viewIndex = (viewIndex + 1) % VIEW_COUNT;
@@ -64,8 +61,8 @@ public final class PlaytimeScoreboard {
         }, TICK_INTERVAL, TICK_INTERVAL);
     }
 
-    private static void refreshSnapshot(World world) {
-        globalItemTotals = ItemReportTask.scanWorld(world);
+    private static void refreshSnapshot() {
+        globalItemTotals = ItemReportTask.scanAllWorlds();
     }
 
     public static void update(Player player) {

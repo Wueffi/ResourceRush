@@ -66,7 +66,7 @@ public final class PlaytimeManager {
     private static void startTickTask() {
         tickTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             String todayStr = today();
-            for (String worldName : List.of("world2", "world2_nether", "world2_the_end")) {
+            for (String worldName : List.of("world", "world_nether", "world_the_end")) {
                 World world = Bukkit.getWorld(worldName);
                 if (world == null) continue;
 

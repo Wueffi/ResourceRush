@@ -8,6 +8,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -17,8 +18,10 @@ public final class DiscordWebhook {
     private static JavaPlugin plugin;
     private static String webhookUrl;
     private static BukkitTask task;
+    private static BukkitTask task2;
 
     private static String messageId;
+    private static String messageId2;
 
     private DiscordWebhook() {}
 
@@ -28,6 +31,7 @@ public final class DiscordWebhook {
         plugin.saveDefaultConfig();
         webhookUrl = plugin.getConfig().getString("discord.webhook-url");
         messageId = plugin.getConfig().getString("discord.webhook-msg");
+        messageId2 = plugin.getConfig().getString("discord.webhook-msg2");
 
         if (webhookUrl == null || webhookUrl.isBlank()) {
             plugin.getLogger().warning("Discord webhook URL missing!");
@@ -44,12 +48,23 @@ public final class DiscordWebhook {
                 20L,
                 20L * 60L * 5L
         );
+
+        task2 = Bukkit.getScheduler().runTaskTimer(
+                plugin,
+                DiscordWebhook::sendItemLeaderboard,
+                20L,
+                20L * 60L * 5L
+        );
     }
 
     public static void shutdown() {
         if (task != null) {
             task.cancel();
             task = null;
+        }
+        if (task2 != null) {
+            task2.cancel();
+            task2 = null;
         }
     }
 
@@ -73,15 +88,43 @@ public final class DiscordWebhook {
                     .append(" points\n\n");
         }
 
-        sendEmbed("Current Leaderboard", description.toString(), 0xFFD700);
+        if (description.isEmpty()) {
+            description.append("No players on the leaderboard yet!");
+        }
+
+        sendEmbed("Current Leaderboard", description.toString(), 0xFFD700, true);
     }
 
-    private static void sendEmbed(String title, String description, int color) {
+    private static void sendItemLeaderboard() {
+        Map<String, Integer> totals = ItemReportTask.scanAllWorlds();
+
+        StringBuilder description = new StringBuilder();
+
+        List<Map.Entry<String, Integer>> items = new ArrayList<>(totals.entrySet());
+        items.sort(Map.Entry.comparingByKey());
+
+        for (Map.Entry<String, Integer> entry : items) {
+            description.append("**")
+                    .append(entry.getKey())
+                    .append(":** ")
+                    .append(entry.getValue())
+                    .append("\n");
+        }
+
+        if (description.isEmpty()) {
+            description.append("No items found yet!");
+        }
+
+        sendEmbed("Current Items", description.toString(), 0x00BFFF, false);
+    }
+
+    private static void sendEmbed(String title, String description, int color, boolean leaderboard) {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
-                boolean edit = messageId != null;
+                String id = leaderboard ? messageId : messageId2;
+                boolean edit = id != null;
 
-                String url = edit ? webhookUrl + "/messages/" + messageId : webhookUrl + "?wait=true";
+                String url = edit ? webhookUrl + "/messages/" + id : webhookUrl + "?wait=true";
 
                 String json = """
                 {
@@ -110,7 +153,13 @@ public final class DiscordWebhook {
                 HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
                 if (!edit) {
-                    messageId = extractMessageId(response.body());
+                    String newId = extractMessageId(response.body());
+
+                    if (leaderboard) {
+                        messageId = newId;
+                    } else {
+                        messageId2 = newId;
+                    }
                 }
 
                 if (response.statusCode() != 200 && response.statusCode() != 204) {

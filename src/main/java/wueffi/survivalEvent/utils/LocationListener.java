@@ -23,12 +23,12 @@ public class LocationListener implements Listener {
     public void onPlayerRespawn(PlayerRespawnEvent event) {
         Player player = event.getPlayer();
 
-        if (!player.getWorld().getName().equals("world")) return;
+        if (!player.getWorld().getName().equals("lobby")) return;
 
-        World world2 = Bukkit.getWorld("world2");
-        if (world2 == null) return;
+        World world = Bukkit.getWorld("world");
+        if (world == null) return;
 
-        event.setRespawnLocation(world2.getSpawnLocation());
+        event.setRespawnLocation(world.getSpawnLocation());
     }
 
     @EventHandler

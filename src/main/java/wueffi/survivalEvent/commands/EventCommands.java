@@ -12,7 +12,6 @@ import wueffi.survivalEvent.utils.LocationHandler;
 import wueffi.survivalEvent.utils.PlayerPointsStore;
 import wueffi.survivalEvent.utils.PlaytimeManager;
 
-import java.text.ParseException;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -69,7 +68,7 @@ public final class EventCommands implements CommandExecutor, TabCompleter {
 
         Location spawnLocation = LocationHandler.loadLocation(player);
         if (spawnLocation == null) {
-            World world = Bukkit.getWorld("world2");
+            World world = Bukkit.getWorld("world");
 
             if (world == null) {
                 return false;
@@ -90,13 +89,13 @@ public final class EventCommands implements CommandExecutor, TabCompleter {
 
         LocationHandler.saveLocation(player);
 
-        World world = Bukkit.getWorld("world");
+        World lobby = Bukkit.getWorld("lobby");
 
-        if (world == null) {
+        if (lobby == null) {
             return false;
         }
 
-        player.teleport(world.getSpawnLocation());
+        player.teleport(lobby.getSpawnLocation());
 
         return true;
     }

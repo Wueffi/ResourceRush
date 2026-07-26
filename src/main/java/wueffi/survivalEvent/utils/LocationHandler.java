@@ -2,6 +2,7 @@ package wueffi.survivalEvent.utils;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -45,6 +46,7 @@ public final class LocationHandler {
         config.set(path + ".z", loc.getZ());
         config.set(path + ".yaw", (double) loc.getYaw());
         config.set(path + ".pitch", (double) loc.getPitch());
+        config.set(path + ".world", loc.getWorld().getName());
 
         try {
             config.save(configFile);
@@ -64,7 +66,8 @@ public final class LocationHandler {
         double z = config.getDouble(path + ".z");
         float yaw = (float) config.getDouble(path + ".yaw");
         float pitch = (float) config.getDouble(path + ".pitch");
+        World world = Bukkit.getWorld(config.getString(path + ".world"));
 
-        return new Location(Bukkit.getWorld("world2"), x, y, z, yaw, pitch);
+        return new Location(world, x, y, z, yaw, pitch);
     }
 }

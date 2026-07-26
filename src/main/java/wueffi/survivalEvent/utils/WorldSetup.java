@@ -7,28 +7,35 @@ import org.bukkit.WorldCreator;
 import org.bukkit.entity.Player;
 
 public class WorldSetup {
-    public static boolean setup() {
-        World overworld = Bukkit.getWorld("world2");
-        if (overworld == null) {
-            overworld = Bukkit.createWorld(new WorldCreator("world2"));
+   public static boolean setup() {
+        World lobby = Bukkit.getWorld("world2");
+        if (lobby == null) {
+            lobby = Bukkit.createWorld(new WorldCreator("lobby"));
 
-            World nether = Bukkit.createWorld(new WorldCreator("world2_nether").environment(World.Environment.NETHER));
-            World end = Bukkit.createWorld(new WorldCreator("world2_the_end").environment(World.Environment.THE_END));
+            World overworld = Bukkit.getWorld("world");
+            World nether = Bukkit.getWorld("world_nether");
+            World end = Bukkit.getWorld("world_the_end");
 
-            WorldBorder border = overworld.getWorldBorder();
-            border.setCenter(overworld.getSpawnLocation());
-            border.setSize(2048);
+            if (overworld != null) {
+                WorldBorder border = overworld.getWorldBorder();
+                border.setCenter(overworld.getSpawnLocation());
+                border.setSize(2048);
+            }
 
-            WorldBorder netherBorder = nether.getWorldBorder();
-            netherBorder.setCenter(overworld.getSpawnLocation());
-            netherBorder.setSize(2048);
+            if (nether != null) {
+                WorldBorder netherBorder = nether.getWorldBorder();
+                netherBorder.setCenter(lobby.getSpawnLocation());
+                netherBorder.setSize(2048);
+            }
 
-            WorldBorder endBorder = end.getWorldBorder();
-            endBorder.setCenter(overworld.getSpawnLocation());
-            endBorder.setSize(4096);
+            if (end != null) {
+                WorldBorder endBorder = end.getWorldBorder();
+                endBorder.setCenter(lobby.getSpawnLocation());
+                endBorder.setSize(4096);
+            }
         }
 
-        if (overworld == null) {
+        if (lobby == null) {
             return false;
         }
 
@@ -36,20 +43,20 @@ public class WorldSetup {
     }
 
     public static boolean unload() {
-        World world2 = Bukkit.getWorld("world2");
+        World lobby = Bukkit.getWorld("lobby");
 
-        if (world2 == null) {
+        if (lobby == null) {
             return false;
         }
 
-        World world = Bukkit.getWorld("world2");
+        World world = Bukkit.getWorld("world");
 
         if (world == null) {
             return false;
         }
 
         for (Player player : world.getPlayers()) {
-            player.teleport(world.getSpawnLocation());
+            player.teleport(lobby.getSpawnLocation());
         }
         return true;
     }
