@@ -23,125 +23,148 @@ import java.util.concurrent.atomic.AtomicInteger;
 public final class ItemReportTask {
     private static final long INTERVAL_TICKS = 20L * 300;
     private static final DateTimeFormatter TIMESTAMP_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-    private static final LinkedHashMap<String, Material> TRACKED = new LinkedHashMap<>();
+
+    private record TrackedItem(String key, Material material, int weight) {}
+    private static final List<TrackedItem> TRACKED = new ArrayList<>();
+    private static final Map<Material, TrackedItem> TRACKED_MAP = new HashMap<>();
 
     static {
-        TRACKED.put("Amethyst Shard", Material.AMETHYST_SHARD);
-        TRACKED.put("Coal", Material.COAL);
-        TRACKED.put("Copper Ingot", Material.COPPER_INGOT);
-        TRACKED.put("Diamond", Material.DIAMOND);
-        TRACKED.put("Emerald", Material.EMERALD);
-        TRACKED.put("Gold Ingot", Material.GOLD_INGOT);
-        TRACKED.put("Iron Ingot", Material.IRON_INGOT);
-        TRACKED.put("Lapis Lazuli", Material.LAPIS_LAZULI);
-        TRACKED.put("Netherite Ingot", Material.NETHERITE_INGOT);
-        TRACKED.put("Prismarine Crystals", Material.PRISMARINE_CRYSTALS);
-        TRACKED.put("Quartz", Material.QUARTZ);
-        TRACKED.put("Redstone", Material.REDSTONE);
-        TRACKED.put("Glowstone Dust", Material.GLOWSTONE_DUST);
-        TRACKED.put("Resin Brick", Material.RESIN_BRICK);
+        TRACKED.add(new TrackedItem("Amethyst Shard", Material.AMETHYST_SHARD, 1));
+        TRACKED.add(new TrackedItem("Coal", Material.COAL, 1));
+        TRACKED.add(new TrackedItem("Copper Ingot", Material.COPPER_INGOT, 1));
+        TRACKED.add(new TrackedItem("Diamond", Material.DIAMOND, 1));
+        TRACKED.add(new TrackedItem("Emerald", Material.EMERALD, 1));
+        TRACKED.add(new TrackedItem("Gold Ingot", Material.GOLD_INGOT, 1));
+        TRACKED.add(new TrackedItem("Iron Ingot", Material.IRON_INGOT, 1));
+        TRACKED.add(new TrackedItem("Lapis Lazuli", Material.LAPIS_LAZULI, 1));
+        TRACKED.add(new TrackedItem("Netherite Ingot", Material.NETHERITE_INGOT, 1));
+        TRACKED.add(new TrackedItem("Prismarine Crystals", Material.PRISMARINE_CRYSTALS, 1));
+        TRACKED.add(new TrackedItem("Quartz", Material.QUARTZ, 1));
+        TRACKED.add(new TrackedItem("Redstone", Material.REDSTONE, 1));
+        TRACKED.add(new TrackedItem("Glowstone Dust", Material.GLOWSTONE_DUST, 1));
+        TRACKED.add(new TrackedItem("Resin Brick", Material.RESIN_BRICK, 1));
 
-        TRACKED.put("Apple", Material.APPLE);
-        TRACKED.put("Baked Potato", Material.BAKED_POTATO);
-        TRACKED.put("Beef", Material.BEEF);
-        TRACKED.put("Beetroot", Material.BEETROOT);
-        TRACKED.put("Beetroot Soup", Material.BEETROOT_SOUP);
-        TRACKED.put("Bread", Material.BREAD);
-        TRACKED.put("Cake", Material.CAKE);
-        TRACKED.put("Carrot", Material.CARROT);
-        TRACKED.put("Chicken", Material.CHICKEN);
-        TRACKED.put("Chorus Fruit", Material.CHORUS_FRUIT);
-        TRACKED.put("Cod", Material.COD);
-        TRACKED.put("Cooked Chicken", Material.COOKED_CHICKEN);
-        TRACKED.put("Cooked Cod", Material.COOKED_COD);
-        TRACKED.put("Cooked Mutton", Material.COOKED_MUTTON);
-        TRACKED.put("Cooked Porkchop", Material.COOKED_PORKCHOP);
-        TRACKED.put("Cooked Rabbit", Material.COOKED_RABBIT);
-        TRACKED.put("Cooked Salmon", Material.COOKED_SALMON);
-        TRACKED.put("Cookie", Material.COOKIE);
-        TRACKED.put("Dried Kelp", Material.DRIED_KELP);
-        TRACKED.put("Enchanted Golden Apple", Material.ENCHANTED_GOLDEN_APPLE);
-        TRACKED.put("Glow Berries", Material.GLOW_BERRIES);
-        TRACKED.put("Golden Apple", Material.GOLDEN_APPLE);
-        TRACKED.put("Golden Carrot", Material.GOLDEN_CARROT);
-        TRACKED.put("Honey Bottle", Material.HONEY_BOTTLE);
-        TRACKED.put("Melon Slice", Material.MELON_SLICE);
-        TRACKED.put("Milk Bucket", Material.MILK_BUCKET);
-        TRACKED.put("Mushroom Stew", Material.MUSHROOM_STEW);
-        TRACKED.put("Mutton", Material.MUTTON);
-        TRACKED.put("Poisonous Potato", Material.POISONOUS_POTATO);
-        TRACKED.put("Porkchop", Material.PORKCHOP);
-        TRACKED.put("Potato", Material.POTATO);
-        TRACKED.put("Pufferfish", Material.PUFFERFISH);
-        TRACKED.put("Pumpkin Pie", Material.PUMPKIN_PIE);
-        TRACKED.put("Rabbit", Material.RABBIT);
-        TRACKED.put("Rabbit Stew", Material.RABBIT_STEW);
-        TRACKED.put("Rotten Flesh", Material.ROTTEN_FLESH);
-        TRACKED.put("Salmon", Material.SALMON);
-        TRACKED.put("Spider Eye", Material.SPIDER_EYE);
-        TRACKED.put("Steak", Material.COOKED_BEEF);
-        TRACKED.put("Suspicious Stew", Material.SUSPICIOUS_STEW);
-        TRACKED.put("Sweet Berries", Material.SWEET_BERRIES);
-        TRACKED.put("Tropical Fish", Material.TROPICAL_FISH);
-        TRACKED.put("Armadillo Scute", Material.ARMADILLO_SCUTE);
-        TRACKED.put("Arrow", Material.ARROW);
-        TRACKED.put("Blaze Rod", Material.BLAZE_ROD);
-        TRACKED.put("Bone", Material.BONE);
-        TRACKED.put("Bone Meal", Material.BONE_MEAL);
-        TRACKED.put("Breeze Rod", Material.BREEZE_ROD);
-        TRACKED.put("Egg", Material.EGG);
-        TRACKED.put("Ender Pearl", Material.ENDER_PEARL);
-        TRACKED.put("Feather", Material.FEATHER);
-        TRACKED.put("Ghast Tear", Material.GHAST_TEAR);
-        TRACKED.put("Glass Bottle", Material.GLASS_BOTTLE);
-        TRACKED.put("Glow Ink Sac", Material.GLOW_INK_SAC);
-        TRACKED.put("Goat Horn", Material.GOAT_HORN);
-        TRACKED.put("Gunpowder", Material.GUNPOWDER);
-        TRACKED.put("Ink Sac", Material.INK_SAC);
-        TRACKED.put("Lead", Material.LEAD);
-        TRACKED.put("Leather", Material.LEATHER);
-        TRACKED.put("Magma Cream", Material.MAGMA_CREAM);
-        TRACKED.put("Nautilus Shell", Material.NAUTILUS_SHELL);
-        TRACKED.put("Nether Star", Material.NETHER_STAR);
-        TRACKED.put("Ominous Bottle", Material.OMINOUS_BOTTLE);
-        TRACKED.put("Phantom Membrane", Material.PHANTOM_MEMBRANE);
-        TRACKED.put("Pitcher Pod", Material.PITCHER_POD);
-        TRACKED.put("Prismarine Shard", Material.PRISMARINE_SHARD);
-        TRACKED.put("Rabbit Foot", Material.RABBIT_FOOT);
-        TRACKED.put("Rabbit Hide", Material.RABBIT_HIDE);
-        TRACKED.put("Saddle", Material.SADDLE);
-        TRACKED.put("Sculk Catalyst", Material.SCULK_CATALYST);
-        TRACKED.put("Seagrass", Material.SEAGRASS);
-        TRACKED.put("Shulker Shell", Material.SHULKER_SHELL);
-        TRACKED.put("Slime Ball", Material.SLIME_BALL);
-        TRACKED.put("Snowball", Material.SNOWBALL);
-        TRACKED.put("Stick", Material.STICK);
-        TRACKED.put("String", Material.STRING);
-        TRACKED.put("Sugar", Material.SUGAR);
-        TRACKED.put("Torchflower Seeds", Material.TORCHFLOWER_SEEDS);
-        TRACKED.put("Totem Of Undying", Material.TOTEM_OF_UNDYING);
-        TRACKED.put("Trident", Material.TRIDENT);
-        TRACKED.put("Turtle Scute", Material.TURTLE_SCUTE);
-        TRACKED.put("Wet Sponge", Material.WET_SPONGE);
-        TRACKED.put("Wither Skeleton Skull", Material.WITHER_SKELETON_SKULL);
-        TRACKED.put("Zombie Head", Material.ZOMBIE_HEAD);
+        TRACKED.add(new TrackedItem("Amethyst Shard", Material.AMETHYST_BLOCK, 4));
+        TRACKED.add(new TrackedItem("Coal", Material.COAL_BLOCK, 9));
+        TRACKED.add(new TrackedItem("Copper Ingot", Material.COPPER_BLOCK, 9));
+        TRACKED.add(new TrackedItem("Diamond", Material.DIAMOND_BLOCK, 9));
+        TRACKED.add(new TrackedItem("Emerald", Material.EMERALD_BLOCK, 9));
+        TRACKED.add(new TrackedItem("Gold Ingot", Material.GOLD_BLOCK, 9));
+        TRACKED.add(new TrackedItem("Iron Ingot", Material.IRON_BLOCK, 9));
+        TRACKED.add(new TrackedItem("Lapis Lazuli", Material.LAPIS_BLOCK, 9));
+        TRACKED.add(new TrackedItem("Netherite Ingot", Material.NETHERITE_BLOCK, 9));
+        TRACKED.add(new TrackedItem("Redstone", Material.REDSTONE_BLOCK, 9));
+        TRACKED.add(new TrackedItem("Quartz", Material.QUARTZ_BLOCK, 4));
+        TRACKED.add(new TrackedItem("Glowstone Dust", Material.GLOWSTONE, 4));
 
-        TRACKED.put("White Wool", Material.WHITE_WOOL);
-        TRACKED.put("Orange Wool", Material.ORANGE_WOOL);
-        TRACKED.put("Magenta Wool", Material.MAGENTA_WOOL);
-        TRACKED.put("Light Blue Wool", Material.LIGHT_BLUE_WOOL);
-        TRACKED.put("Yellow Wool", Material.YELLOW_WOOL);
-        TRACKED.put("Lime Wool", Material.LIME_WOOL);
-        TRACKED.put("Pink Wool", Material.PINK_WOOL);
-        TRACKED.put("Gray Wool", Material.GRAY_WOOL);
-        TRACKED.put("Light Gray Wool", Material.LIGHT_GRAY_WOOL);
-        TRACKED.put("Cyan Wool", Material.CYAN_WOOL);
-        TRACKED.put("Purple Wool", Material.PURPLE_WOOL);
-        TRACKED.put("Blue Wool", Material.BLUE_WOOL);
-        TRACKED.put("Brown Wool", Material.BROWN_WOOL);
-        TRACKED.put("Green Wool", Material.GREEN_WOOL);
-        TRACKED.put("Red Wool", Material.RED_WOOL);
-        TRACKED.put("Black Wool", Material.BLACK_WOOL);
+        TRACKED.add(new TrackedItem("Iron Ingot", Material.IRON_NUGGET, 1));
+        TRACKED.add(new TrackedItem("Gold Ingot", Material.GOLD_NUGGET, 1));
+
+        TRACKED.add(new TrackedItem("Apple", Material.APPLE, 1));
+        TRACKED.add(new TrackedItem("Baked Potato", Material.BAKED_POTATO, 1));
+        TRACKED.add(new TrackedItem("Beef", Material.BEEF, 1));
+        TRACKED.add(new TrackedItem("Beetroot", Material.BEETROOT, 1));
+        TRACKED.add(new TrackedItem("Beetroot Soup", Material.BEETROOT_SOUP, 1));
+        TRACKED.add(new TrackedItem("Bread", Material.BREAD, 1));
+        TRACKED.add(new TrackedItem("Cake", Material.CAKE, 1));
+        TRACKED.add(new TrackedItem("Carrot", Material.CARROT, 1));
+        TRACKED.add(new TrackedItem("Chicken", Material.CHICKEN, 1));
+        TRACKED.add(new TrackedItem("Chorus Fruit", Material.CHORUS_FRUIT, 1));
+        TRACKED.add(new TrackedItem("Cod", Material.COD, 1));
+        TRACKED.add(new TrackedItem("Cooked Chicken", Material.COOKED_CHICKEN, 1));
+        TRACKED.add(new TrackedItem("Cooked Cod", Material.COOKED_COD, 1));
+        TRACKED.add(new TrackedItem("Cooked Mutton", Material.COOKED_MUTTON, 1));
+        TRACKED.add(new TrackedItem("Cooked Porkchop", Material.COOKED_PORKCHOP, 1));
+        TRACKED.add(new TrackedItem("Cooked Rabbit", Material.COOKED_RABBIT, 1));
+        TRACKED.add(new TrackedItem("Cooked Salmon", Material.COOKED_SALMON, 1));
+        TRACKED.add(new TrackedItem("Cookie", Material.COOKIE, 1));
+        TRACKED.add(new TrackedItem("Dried Kelp", Material.DRIED_KELP, 1));
+        TRACKED.add(new TrackedItem("Enchanted Golden Apple", Material.ENCHANTED_GOLDEN_APPLE, 1));
+        TRACKED.add(new TrackedItem("Glow Berries", Material.GLOW_BERRIES, 1));
+        TRACKED.add(new TrackedItem("Golden Apple", Material.GOLDEN_APPLE, 1));
+        TRACKED.add(new TrackedItem("Golden Carrot", Material.GOLDEN_CARROT, 1));
+        TRACKED.add(new TrackedItem("Honey Bottle", Material.HONEY_BOTTLE, 1));
+        TRACKED.add(new TrackedItem("Melon Slice", Material.MELON_SLICE, 1));
+        TRACKED.add(new TrackedItem("Milk Bucket", Material.MILK_BUCKET, 1));
+        TRACKED.add(new TrackedItem("Mushroom Stew", Material.MUSHROOM_STEW, 1));
+        TRACKED.add(new TrackedItem("Mutton", Material.MUTTON, 1));
+        TRACKED.add(new TrackedItem("Poisonous Potato", Material.POISONOUS_POTATO, 1));
+        TRACKED.add(new TrackedItem("Porkchop", Material.PORKCHOP, 1));
+        TRACKED.add(new TrackedItem("Potato", Material.POTATO, 1));
+        TRACKED.add(new TrackedItem("Pufferfish", Material.PUFFERFISH, 1));
+        TRACKED.add(new TrackedItem("Pumpkin Pie", Material.PUMPKIN_PIE, 1));
+        TRACKED.add(new TrackedItem("Rabbit", Material.RABBIT, 1));
+        TRACKED.add(new TrackedItem("Rabbit Stew", Material.RABBIT_STEW, 1));
+        TRACKED.add(new TrackedItem("Rotten Flesh", Material.ROTTEN_FLESH, 1));
+        TRACKED.add(new TrackedItem("Salmon", Material.SALMON, 1));
+        TRACKED.add(new TrackedItem("Spider Eye", Material.SPIDER_EYE, 1));
+        TRACKED.add(new TrackedItem("Steak", Material.COOKED_BEEF, 1));
+        TRACKED.add(new TrackedItem("Suspicious Stew", Material.SUSPICIOUS_STEW, 1));
+        TRACKED.add(new TrackedItem("Sweet Berries", Material.SWEET_BERRIES, 1));
+        TRACKED.add(new TrackedItem("Tropical Fish", Material.TROPICAL_FISH, 1));
+        TRACKED.add(new TrackedItem("Armadillo Scute", Material.ARMADILLO_SCUTE, 1));
+        TRACKED.add(new TrackedItem("Arrow", Material.ARROW, 1));
+        TRACKED.add(new TrackedItem("Blaze Rod", Material.BLAZE_ROD, 1));
+        TRACKED.add(new TrackedItem("Bone", Material.BONE, 1));
+        TRACKED.add(new TrackedItem("Bone Meal", Material.BONE_MEAL, 1));
+        TRACKED.add(new TrackedItem("Breeze Rod", Material.BREEZE_ROD, 1));
+        TRACKED.add(new TrackedItem("Egg", Material.EGG, 1));
+        TRACKED.add(new TrackedItem("Ender Pearl", Material.ENDER_PEARL, 1));
+        TRACKED.add(new TrackedItem("Feather", Material.FEATHER, 1));
+        TRACKED.add(new TrackedItem("Ghast Tear", Material.GHAST_TEAR, 1));
+        TRACKED.add(new TrackedItem("Glass Bottle", Material.GLASS_BOTTLE, 1));
+        TRACKED.add(new TrackedItem("Glow Ink Sac", Material.GLOW_INK_SAC, 1));
+        TRACKED.add(new TrackedItem("Goat Horn", Material.GOAT_HORN, 1));
+        TRACKED.add(new TrackedItem("Gunpowder", Material.GUNPOWDER, 1));
+        TRACKED.add(new TrackedItem("Ink Sac", Material.INK_SAC, 1));
+        TRACKED.add(new TrackedItem("Lead", Material.LEAD, 1));
+        TRACKED.add(new TrackedItem("Leather", Material.LEATHER, 1));
+        TRACKED.add(new TrackedItem("Magma Cream", Material.MAGMA_CREAM, 1));
+        TRACKED.add(new TrackedItem("Nautilus Shell", Material.NAUTILUS_SHELL, 1));
+        TRACKED.add(new TrackedItem("Nether Star", Material.NETHER_STAR, 1));
+        TRACKED.add(new TrackedItem("Ominous Bottle", Material.OMINOUS_BOTTLE, 1));
+        TRACKED.add(new TrackedItem("Phantom Membrane", Material.PHANTOM_MEMBRANE, 1));
+        TRACKED.add(new TrackedItem("Pitcher Pod", Material.PITCHER_POD, 1));
+        TRACKED.add(new TrackedItem("Prismarine Shard", Material.PRISMARINE_SHARD, 1));
+        TRACKED.add(new TrackedItem("Rabbit Foot", Material.RABBIT_FOOT, 1));
+        TRACKED.add(new TrackedItem("Rabbit Hide", Material.RABBIT_HIDE, 1));
+        TRACKED.add(new TrackedItem("Saddle", Material.SADDLE, 1));
+        TRACKED.add(new TrackedItem("Sculk Catalyst", Material.SCULK_CATALYST, 1));
+        TRACKED.add(new TrackedItem("Seagrass", Material.SEAGRASS, 1));
+        TRACKED.add(new TrackedItem("Shulker Shell", Material.SHULKER_SHELL, 1));
+        TRACKED.add(new TrackedItem("Slime Ball", Material.SLIME_BALL, 1));
+        TRACKED.add(new TrackedItem("Snowball", Material.SNOWBALL, 1));
+        TRACKED.add(new TrackedItem("Stick", Material.STICK, 1));
+        TRACKED.add(new TrackedItem("String", Material.STRING, 1));
+        TRACKED.add(new TrackedItem("Sugar", Material.SUGAR, 1));
+        TRACKED.add(new TrackedItem("Torchflower Seeds", Material.TORCHFLOWER_SEEDS, 1));
+        TRACKED.add(new TrackedItem("Totem Of Undying", Material.TOTEM_OF_UNDYING, 1));
+        TRACKED.add(new TrackedItem("Trident", Material.TRIDENT, 1));
+        TRACKED.add(new TrackedItem("Turtle Scute", Material.TURTLE_SCUTE, 1));
+        TRACKED.add(new TrackedItem("Wet Sponge", Material.WET_SPONGE, 1));
+        TRACKED.add(new TrackedItem("Wither Skeleton Skull", Material.WITHER_SKELETON_SKULL, 1));
+        TRACKED.add(new TrackedItem("Zombie Head", Material.ZOMBIE_HEAD, 1));
+
+        TRACKED.add(new TrackedItem("White Wool", Material.WHITE_WOOL, 1));
+        TRACKED.add(new TrackedItem("Orange Wool", Material.ORANGE_WOOL, 1));
+        TRACKED.add(new TrackedItem("Magenta Wool", Material.MAGENTA_WOOL, 1));
+        TRACKED.add(new TrackedItem("Light Blue Wool", Material.LIGHT_BLUE_WOOL, 1));
+        TRACKED.add(new TrackedItem("Yellow Wool", Material.YELLOW_WOOL, 1));
+        TRACKED.add(new TrackedItem("Lime Wool", Material.LIME_WOOL, 1));
+        TRACKED.add(new TrackedItem("Pink Wool", Material.PINK_WOOL, 1));
+        TRACKED.add(new TrackedItem("Gray Wool", Material.GRAY_WOOL, 1));
+        TRACKED.add(new TrackedItem("Light Gray Wool", Material.LIGHT_GRAY_WOOL, 1));
+        TRACKED.add(new TrackedItem("Cyan Wool", Material.CYAN_WOOL, 1));
+        TRACKED.add(new TrackedItem("Purple Wool", Material.PURPLE_WOOL, 1));
+        TRACKED.add(new TrackedItem("Blue Wool", Material.BLUE_WOOL, 1));
+        TRACKED.add(new TrackedItem("Brown Wool", Material.BROWN_WOOL, 1));
+        TRACKED.add(new TrackedItem("Green Wool", Material.GREEN_WOOL, 1));
+        TRACKED.add(new TrackedItem("Red Wool", Material.RED_WOOL, 1));
+        TRACKED.add(new TrackedItem("Black Wool", Material.BLACK_WOOL, 1));
+
+        for (TrackedItem item : TRACKED) {
+            TRACKED_MAP.put(item.material(), item);
+        }
     }
 
     private static JavaPlugin plugin;
@@ -215,7 +238,9 @@ public final class ItemReportTask {
 
         Map<String, Map<UUID, Integer>> itemMatrix = new LinkedHashMap<>();
 
-        for (String key : TRACKED.keySet()) {
+        for (TrackedItem tracked : TRACKED) {
+            String key = tracked.key();
+
             Map<UUID, Integer> row = new LinkedHashMap<>();
 
             for (Map.Entry<UUID, Map<String, Integer>> entry : playerCounts.entrySet()) {
@@ -301,24 +326,40 @@ public final class ItemReportTask {
     private static Map<String, Integer> zeroCounts() {
         Map<String, Integer> counts = new LinkedHashMap<>();
 
-        for (String key : TRACKED.keySet()) counts.put(key, 0);
+        for (TrackedItem tracked : TRACKED) {
+            counts.putIfAbsent(tracked.key(), 0);
+        }
+
         return counts;
     }
 
     private static void addCounts(Inventory inv, Map<String, Integer> counts) {
+        Map<String, Integer> nuggetBuffer = new HashMap<>();
+
         for (ItemStack item : inv.getContents()) {
             if (item == null) continue;
 
-            for (Map.Entry<String, Material> entry : TRACKED.entrySet()) {
-                if (entry.getValue() != item.getType()) continue;
-                counts.merge(entry.getKey(), item.getAmount(), Integer::sum);
+            TrackedItem tracked = TRACKED_MAP.get(item.getType());
+            if (tracked == null) continue;
+
+            if (item.getType() == Material.IRON_NUGGET) {
+                nuggetBuffer.merge("Iron Ingot", item.getAmount(), Integer::sum);
+            } else if (item.getType() == Material.GOLD_NUGGET) {
+                nuggetBuffer.merge("Gold Ingot", item.getAmount(), Integer::sum);
+            } else {
+                counts.merge(tracked.key(), item.getAmount() * tracked.weight(), Integer::sum);
             }
         }
+
+        counts.merge("Iron Ingot", nuggetBuffer.getOrDefault("Iron Ingot", 0) / 9, Integer::sum);
+        counts.merge("Gold Ingot", nuggetBuffer.getOrDefault("Gold Ingot", 0) / 9, Integer::sum);
     }
 
     private static void writeHeader() throws IOException {
         try (FileWriter fw = new FileWriter(csvFile, true)) {
-            fw.write("id,playername,timestamp,points," + String.join(",", TRACKED.keySet()) + "\n");
+            String header = TRACKED.stream().map(TrackedItem::key).distinct().reduce((a, b) -> a + "," + b).orElse("");
+
+            fw.write("id,playername,timestamp,points," + header + "\n");
         }
     }
 
@@ -326,7 +367,9 @@ public final class ItemReportTask {
         StringBuilder sb = new StringBuilder();
         sb.append(id).append(",").append(name).append(",").append(timestamp).append(",").append(points);
 
-        for (int count : counts.values()) sb.append(",").append(count);
+        for (String key : counts.keySet()) {
+            sb.append(",").append(counts.getOrDefault(key, 0));
+        }
 
         sb.append("\n");
 
