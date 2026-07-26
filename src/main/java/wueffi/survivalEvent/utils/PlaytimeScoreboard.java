@@ -88,12 +88,13 @@ public final class PlaytimeScoreboard {
 
         long secondsLeft = Math.max(0L, 7200 - PlaytimeManager.getSecondsToday(player));
         double pts = PlayerPointsStore.get(player.getUniqueId());
+        String ptsStr = String.format("%.2f", pts);
 
         obj.getScore(" ").setScore(0);
         obj.getScore("§a" + EventCommands.formatSeconds(secondsLeft)).setScore(1);
         obj.getScore("§7Time left:").setScore(2);
         obj.getScore("  ").setScore(3);
-        obj.getScore("§e" + pts + " pts").setScore(4);
+        obj.getScore("§e" + ptsStr + " pts").setScore(4);
         obj.getScore("§7Your points:").setScore(5);
         obj.getScore("§8──────────────").setScore(6);
 

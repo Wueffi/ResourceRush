@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -65,35 +66,34 @@ public final class PlaytimeManager {
     private static void startTickTask() {
         tickTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             String todayStr = today();
-            World world = Bukkit.getWorld("world2");
+            for (String worldName : List.of("world2", "world2_nether", "world2_the_end")) {
+                World world = Bukkit.getWorld(worldName);
+                if (world == null) continue;
 
-            if (world == null) {
-                return;
-            }
-
-            for (Player player : world.getPlayers()) {
-                if (ModManager.isModerator(player.getName())) {
-                    return;
-                }
-
-                UUID uuid = player.getUniqueId();
-
-                String lastDate = playerDates.getOrDefault(uuid, todayStr);
-                if (!lastDate.equals(todayStr)) {
-                    secondsToday.put(uuid, 0L);
-                }
-
-                playerDates.put(uuid, todayStr);
-                secondsToday.merge(uuid, 1L, Long::sum);
-                if (secondsToday.get(uuid) >= 7200) {
-                    World spawnWorld = Bukkit.getWorld("world");
-
-                    if (spawnWorld == null) {
+                for (Player player : world.getPlayers()) {
+                    if (ModManager.isModerator(player.getName())) {
                         return;
                     }
 
-                    player.teleport(spawnWorld.getSpawnLocation());
-                    player.sendMessage("§cYou have used all of your playtime for today! Come back tommorow");
+                    UUID uuid = player.getUniqueId();
+
+                    String lastDate = playerDates.getOrDefault(uuid, todayStr);
+                    if (!lastDate.equals(todayStr)) {
+                        secondsToday.put(uuid, 0L);
+                    }
+
+                    playerDates.put(uuid, todayStr);
+                    secondsToday.merge(uuid, 1L, Long::sum);
+                    if (secondsToday.get(uuid) >= 7200) {
+                        World spawnWorld = Bukkit.getWorld("world");
+
+                        if (spawnWorld == null) {
+                            return;
+                        }
+
+                        player.teleport(spawnWorld.getSpawnLocation());
+                        player.sendMessage("§cYou have used all of your playtime for today! Come back tommorow");
+                    }
                 }
             }
         }, TICK_INTERVAL, TICK_INTERVAL);

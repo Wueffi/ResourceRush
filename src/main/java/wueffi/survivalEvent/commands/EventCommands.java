@@ -53,7 +53,8 @@ public final class EventCommands implements CommandExecutor, TabCompleter {
             return true;
         }
         double score = PlayerPointsStore.get(target.identity().uuid());
-        sender.sendMessage("§e" + target.getName() + "§f's score: §a" + score);
+        String pts = String.format("%.2f", score);
+        sender.sendMessage("§e" + target.getName() + "§f's points: §a" + pts);
         return true;
     }
 

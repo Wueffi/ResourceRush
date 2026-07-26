@@ -8,19 +8,30 @@ import org.bukkit.entity.Player;
 
 public class WorldSetup {
     public static boolean setup() {
-        World world = Bukkit.getWorld("world2");
+        World overworld = Bukkit.getWorld("world2");
+        if (overworld == null) {
+            overworld = Bukkit.createWorld(new WorldCreator("world2"));
 
-        if (world == null) {
-            world = Bukkit.createWorld(new WorldCreator("world2"));
+            World nether = Bukkit.createWorld(new WorldCreator("world2_nether").environment(World.Environment.NETHER));
+            World end = Bukkit.createWorld(new WorldCreator("world2_the_end").environment(World.Environment.THE_END));
+
+            WorldBorder border = overworld.getWorldBorder();
+            border.setCenter(overworld.getSpawnLocation());
+            border.setSize(2048);
+
+            WorldBorder netherBorder = nether.getWorldBorder();
+            netherBorder.setCenter(overworld.getSpawnLocation());
+            netherBorder.setSize(2048);
+
+            WorldBorder endBorder = end.getWorldBorder();
+            endBorder.setCenter(overworld.getSpawnLocation());
+            endBorder.setSize(4096);
         }
 
-        if (world == null) {
+        if (overworld == null) {
             return false;
         }
 
-        WorldBorder border = world.getWorldBorder();
-        border.setCenter(world.getSpawnLocation().x(), world.getSpawnLocation().y());
-        border.setSize(500);
         return true;
     }
 

@@ -42,6 +42,9 @@ public final class SurvivalEvent extends JavaPlugin {
         ModManager.init(this);
         LOGGER.info("ModManager initialized!");
 
+        DiscordWebhook.init(this);
+        LOGGER.info("Webhook initialized!");
+
         EventCommands handler = new EventCommands();
         for (String cmd : List.of("playtime", "check", "start", "end", "leaderboard")) {
             var pluginCmd = getCommand(cmd);
@@ -67,5 +70,8 @@ public final class SurvivalEvent extends JavaPlugin {
 
         ItemReportTask.shutdown();
         LOGGER.info("ItemReportTask shutdown!");
+
+        DiscordWebhook.shutdown();
+        LOGGER.info("Webhook shutdown!");
     }
 }
