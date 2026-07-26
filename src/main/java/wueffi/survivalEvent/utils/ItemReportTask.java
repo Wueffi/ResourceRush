@@ -57,6 +57,34 @@ public final class ItemReportTask {
         TRACKED.add(new TrackedItem("Quartz", Material.QUARTZ_BLOCK, 4));
         TRACKED.add(new TrackedItem("Glowstone Dust", Material.GLOWSTONE, 4));
 
+        TRACKED.add(new TrackedItem("Raw Iron", Material.RAW_IRON, 1));
+        TRACKED.add(new TrackedItem("Raw Gold", Material.RAW_GOLD, 1));
+        TRACKED.add(new TrackedItem("Raw Copper", Material.RAW_COPPER, 1));
+
+        TRACKED.add(new TrackedItem("Raw Iron", Material.RAW_IRON_BLOCK, 9));
+        TRACKED.add(new TrackedItem("Raw Gold", Material.RAW_GOLD_BLOCK, 9));
+        TRACKED.add(new TrackedItem("Raw Copper", Material.RAW_COPPER_BLOCK, 9));
+
+        TRACKED.add(new TrackedItem("Coal", Material.COAL_ORE, 1));
+        TRACKED.add(new TrackedItem("Coal", Material.DEEPSLATE_COAL_ORE, 1));
+        TRACKED.add(new TrackedItem("Copper Ingot", Material.COPPER_ORE, 1));
+        TRACKED.add(new TrackedItem("Copper Ingot", Material.DEEPSLATE_COPPER_ORE, 1));
+        TRACKED.add(new TrackedItem("Diamond", Material.DIAMOND_ORE, 1));
+        TRACKED.add(new TrackedItem("Diamond", Material.DEEPSLATE_DIAMOND_ORE, 1));
+        TRACKED.add(new TrackedItem("Emerald", Material.EMERALD_ORE, 1));
+        TRACKED.add(new TrackedItem("Emerald", Material.DEEPSLATE_EMERALD_ORE, 1));
+        TRACKED.add(new TrackedItem("Gold Ingot", Material.GOLD_ORE, 1));
+        TRACKED.add(new TrackedItem("Gold Ingot", Material.DEEPSLATE_GOLD_ORE, 1));
+        TRACKED.add(new TrackedItem("Gold Ingot", Material.NETHER_GOLD_ORE, 1));
+        TRACKED.add(new TrackedItem("Iron Ingot", Material.IRON_ORE, 1));
+        TRACKED.add(new TrackedItem("Iron Ingot", Material.DEEPSLATE_IRON_ORE, 1));
+        TRACKED.add(new TrackedItem("Lapis Lazuli", Material.LAPIS_ORE, 6));
+        TRACKED.add(new TrackedItem("Lapis Lazuli", Material.DEEPSLATE_LAPIS_ORE, 6));
+        TRACKED.add(new TrackedItem("Redstone", Material.REDSTONE_ORE, 4));
+        TRACKED.add(new TrackedItem("Redstone", Material.DEEPSLATE_REDSTONE_ORE, 4));
+        TRACKED.add(new TrackedItem("Quartz", Material.NETHER_QUARTZ_ORE, 1));
+        TRACKED.add(new TrackedItem("Netherite Ingot", Material.ANCIENT_DEBRIS, 1));
+
         TRACKED.add(new TrackedItem("Iron Ingot", Material.IRON_NUGGET, 1));
         TRACKED.add(new TrackedItem("Gold Ingot", Material.GOLD_NUGGET, 1));
 
