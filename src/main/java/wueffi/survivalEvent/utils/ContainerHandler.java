@@ -84,6 +84,14 @@ public final class ContainerHandler {
                 .collect(Collectors.toList());
     }
 
+    public static List<UUID> getEntityContainersPerPlayer(UUID uuid) {
+        if (config == null) return List.of();
+        return config.getStringList("containers." + uuid).stream()
+                .filter(s -> s.startsWith("entity:"))
+                .map(s -> UUID.fromString(s.substring("entity:".length())))
+                .collect(Collectors.toList());
+    }
+
     public static String keyFor(Object holderOrLocationSource) {
         if (holderOrLocationSource instanceof Location loc) {
             return keyFor(loc);

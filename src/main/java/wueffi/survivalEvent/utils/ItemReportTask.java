@@ -6,9 +6,11 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.Container;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
@@ -261,6 +263,7 @@ public final class ItemReportTask {
                     }
 
                     addCounts(container.getInventory(), counts);
+                    addEntityContainerCounts(uuid, counts);
                 }
             }
 
@@ -349,6 +352,7 @@ public final class ItemReportTask {
                 if (!(block.getState() instanceof Container container)) continue;
 
                 addCounts(container.getInventory(), totals);
+                addEntityContainerCounts(player.getUniqueId(), totals);
             }
         }
 
@@ -450,6 +454,15 @@ public final class ItemReportTask {
 
         totals.merge("Iron Ingot", nuggetBuffer.getOrDefault("Iron Ingot", 0) / 9, Integer::sum);
         totals.merge("Gold Ingot", nuggetBuffer.getOrDefault("Gold Ingot", 0) / 9, Integer::sum);
+    }
+
+    private static void addEntityContainerCounts(UUID playerUuid, Map<String, Integer> counts) {
+        for (UUID entityUuid : ContainerHandler.getEntityContainersPerPlayer(playerUuid)) {
+            Entity entity = Bukkit.getEntity(entityUuid);
+            if (!(entity instanceof InventoryHolder holder)) continue;
+
+            addCounts(holder.getInventory(), counts);
+        }
     }
 
     private static void writeHeader() throws IOException {
