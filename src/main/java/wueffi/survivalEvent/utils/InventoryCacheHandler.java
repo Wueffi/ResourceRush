@@ -8,9 +8,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public final class InventoryCacheHandler {
 
@@ -43,7 +41,7 @@ public final class InventoryCacheHandler {
     public static void saveInventory(Player player) {
         String path = "inventories." + player.getUniqueId();
 
-        config.set(path, player.getInventory().getContents());
+        config.set(path, Arrays.asList(player.getInventory().getContents()));
 
         try {
             config.save(file);
@@ -59,13 +57,23 @@ public final class InventoryCacheHandler {
     public static ItemStack[] getInventory(String uuid) {
         config = YamlConfiguration.loadConfiguration(file);
 
-        Object value = config.get("inventories." + uuid);
+        List<?> list = config.getList("inventories." + uuid);
 
-        if (value instanceof ItemStack[] items) {
-            return items;
+        if (list == null) {
+            return new ItemStack[0];
         }
 
-        return new ItemStack[0];
+        ItemStack[] items = new ItemStack[list.size()];
+
+        for (int i = 0; i < list.size(); i++) {
+            Object obj = list.get(i);
+
+            if (obj instanceof ItemStack item) {
+                items[i] = item;
+            }
+        }
+
+        return items;
     }
 
     public static Set<UUID> getAllOwners() {
