@@ -11,6 +11,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -90,6 +91,14 @@ public final class ContainerHandler {
                 .filter(s -> s.startsWith("entity:"))
                 .map(s -> UUID.fromString(s.substring("entity:".length())))
                 .collect(Collectors.toList());
+    }
+
+    public static Set<UUID> getAllOwners() {
+        if (config == null || !config.isConfigurationSection("containers")) return Set.of();
+
+        return config.getConfigurationSection("containers").getKeys(false).stream()
+                .map(UUID::fromString)
+                .collect(Collectors.toSet());
     }
 
     public static String keyFor(Object holderOrLocationSource) {

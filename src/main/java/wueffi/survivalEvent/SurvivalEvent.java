@@ -43,6 +43,11 @@ public final class SurvivalEvent extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new DroppedItemListener(), this);
         LOGGER.info("DroppedItemHandler initialized!");
 
+        InventoryCacheHandler.init(this);
+        getServer().getPluginManager().registerEvents(new InventoryCacheListener(this), this);
+        LOGGER.info("InventoryCacheHandler initialized!");
+
+
         ModManager.init(this);
         LOGGER.info("ModManager initialized!");
 

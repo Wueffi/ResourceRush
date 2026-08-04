@@ -6,6 +6,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 public final class DroppedItemHandler {
@@ -45,6 +47,19 @@ public final class DroppedItemHandler {
         if (raw == null) return null;
 
         return UUID.fromString(raw);
+    }
+
+    public static Set<UUID> getAllOwners() {
+        if (config == null || !config.isConfigurationSection("items")) return Set.of();
+
+        Set<UUID> owners = new HashSet<>();
+        for (String key : config.getConfigurationSection("items").getKeys(false)) {
+            String raw = config.getString("items." + key);
+            if (raw != null) {
+                owners.add(UUID.fromString(raw));
+            }
+        }
+        return owners;
     }
 
     public static void removeItem(UUID itemUUID) {
