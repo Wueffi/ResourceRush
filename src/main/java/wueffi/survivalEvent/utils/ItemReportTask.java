@@ -6,6 +6,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.Container;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -262,6 +263,8 @@ public final class ItemReportTask {
                     addCounts(container.getInventory(), counts);
                 }
             }
+
+            addDroppedItemCounts(world, playerCounts);
         }
 
         Map<String, Map<UUID, Integer>> itemMatrix = new LinkedHashMap<>();
@@ -348,6 +351,9 @@ public final class ItemReportTask {
                 addCounts(container.getInventory(), totals);
             }
         }
+
+        addDroppedTotals(world, totals);
+
         return totals;
     }
 
@@ -381,6 +387,69 @@ public final class ItemReportTask {
 
         counts.merge("Iron Ingot", nuggetBuffer.getOrDefault("Iron Ingot", 0) / 9, Integer::sum);
         counts.merge("Gold Ingot", nuggetBuffer.getOrDefault("Gold Ingot", 0) / 9, Integer::sum);
+    }
+
+    private static void addDroppedItemCounts(World world, Map<UUID, Map<String, Integer>> playerCounts) {
+        Map<UUID, Map<String, Integer>> nuggetBuffers = new HashMap<>();
+
+        for (Item itemEntity : world.getEntitiesByClass(Item.class)) {
+            UUID owner = DroppedItemHandler.getOwner(itemEntity.getUniqueId());
+            if (owner == null) continue;
+
+            Map<String, Integer> counts = playerCounts.get(owner);
+            if (counts == null) continue;
+
+            ItemStack item = itemEntity.getItemStack();
+            TrackedItem tracked = TRACKED_MAP.get(item.getType());
+            if (tracked == null) continue;
+
+            if (item.getType() == Material.IRON_NUGGET) {
+                nuggetBuffers.computeIfAbsent(owner, k -> new HashMap<>()).merge("Iron Ingot", item.getAmount(), Integer::sum);
+            } else if (item.getType() == Material.GOLD_NUGGET) {
+                nuggetBuffers.computeIfAbsent(owner, k -> new HashMap<>()).merge("Gold Ingot", item.getAmount(), Integer::sum);
+            } else {
+                counts.merge(tracked.key(), item.getAmount() * tracked.weight(), Integer::sum);
+            }
+        }
+
+        for (Map.Entry<UUID, Map<String, Integer>> entry : nuggetBuffers.entrySet()) {
+            Map<String, Integer> counts = playerCounts.get(entry.getKey());
+            if (counts == null) continue;
+
+            counts.merge("Iron Ingot", entry.getValue().getOrDefault("Iron Ingot", 0) / 9, Integer::sum);
+            counts.merge("Gold Ingot", entry.getValue().getOrDefault("Gold Ingot", 0) / 9, Integer::sum);
+        }
+    }
+
+    private static void addDroppedTotals(World world, Map<String, Integer> totals) {
+        Set<UUID> validOwners = new HashSet<>();
+        for (Player player : world.getPlayers()) {
+            if (!ModManager.isModerator(player.getName())) {
+                validOwners.add(player.getUniqueId());
+            }
+        }
+
+        Map<String, Integer> nuggetBuffer = new HashMap<>();
+
+        for (Item itemEntity : world.getEntitiesByClass(Item.class)) {
+            UUID owner = DroppedItemHandler.getOwner(itemEntity.getUniqueId());
+            if (owner == null || !validOwners.contains(owner)) continue;
+
+            ItemStack item = itemEntity.getItemStack();
+            TrackedItem tracked = TRACKED_MAP.get(item.getType());
+            if (tracked == null) continue;
+
+            if (item.getType() == Material.IRON_NUGGET) {
+                nuggetBuffer.merge("Iron Ingot", item.getAmount(), Integer::sum);
+            } else if (item.getType() == Material.GOLD_NUGGET) {
+                nuggetBuffer.merge("Gold Ingot", item.getAmount(), Integer::sum);
+            } else {
+                totals.merge(tracked.key(), item.getAmount() * tracked.weight(), Integer::sum);
+            }
+        }
+
+        totals.merge("Iron Ingot", nuggetBuffer.getOrDefault("Iron Ingot", 0) / 9, Integer::sum);
+        totals.merge("Gold Ingot", nuggetBuffer.getOrDefault("Gold Ingot", 0) / 9, Integer::sum);
     }
 
     private static void writeHeader() throws IOException {

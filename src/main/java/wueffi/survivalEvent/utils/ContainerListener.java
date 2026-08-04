@@ -1,8 +1,11 @@
 package wueffi.survivalEvent.utils;
 
 import net.kyori.adventure.text.Component;
+import org.bukkit.Nameable;
 import org.bukkit.block.Block;
 import org.bukkit.block.Container;
+import org.bukkit.block.DoubleChest;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -39,29 +42,50 @@ public class ContainerListener implements Listener {
 
     @EventHandler
     public void onInventoryOpen(InventoryOpenEvent event) {
-        InventoryHolder holder = event.getInventory().getHolder();
-        if (!(holder instanceof Container container)) return;
         if (!(event.getPlayer() instanceof Player player)) return;
 
-        String key = ContainerHandler.keyFor(container);
-        if (key == null) return;
+        InventoryHolder holder = event.getInventory().getHolder();
 
+        if (holder instanceof DoubleChest doubleChest) {
+            InventoryHolder left = doubleChest.getLeftSide();
+            if (left != null) holder = left;
+        }
+
+        String key;
+        Nameable nameable;
+
+        if (holder instanceof Container container) {
+            key = ContainerHandler.keyFor(container);
+            nameable = container;
+        } else if (holder instanceof Entity entity) {
+            key = ContainerHandler.keyFor(entity);
+            nameable = entity;
+        } else {
+            return;
+        }
+
+        if (key == null) return;
         if (ContainerHandler.getOwner(key) != null) return;
 
         ContainerHandler.addContainer(player.getUniqueId(), key);
+        nameable.customName(Component.text(player.getName()));
+
+        if (holder instanceof Container container) {
+            container.update();
+        }
 
         player.sendMessage("§aYou claimed this container!");
     }
 
     @EventHandler
     public void onVehicleDestroy(VehicleDestroyEvent event) {
-        if (!(event.getVehicle() instanceof Container)) return;
+        if (!(event.getVehicle() instanceof InventoryHolder)) return;
         ContainerHandler.removeContainer(ContainerHandler.keyFor(event.getVehicle()));
     }
 
     @EventHandler
     public void onEntityDeath(EntityDeathEvent event) {
-        if (!(event.getEntity() instanceof Container)) return;
+        if (!(event.getEntity() instanceof InventoryHolder)) return;
         ContainerHandler.removeContainer(ContainerHandler.keyFor(event.getEntity()));
     }
 }

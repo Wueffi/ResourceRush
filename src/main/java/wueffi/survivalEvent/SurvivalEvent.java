@@ -39,6 +39,10 @@ public final class SurvivalEvent extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new LocationListener(this), this);
         LOGGER.info("LocationHandler initialized!");
 
+        DroppedItemHandler.init(this);
+        getServer().getPluginManager().registerEvents(new DroppedItemListener(), this);
+        LOGGER.info("DroppedItemHandler initialized!");
+
         ModManager.init(this);
         LOGGER.info("ModManager initialized!");
 
