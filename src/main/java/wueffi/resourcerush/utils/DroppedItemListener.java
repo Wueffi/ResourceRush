@@ -1,4 +1,4 @@
-package wueffi.survivalEvent.utils;
+package wueffi.resourcerush.utils;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Item;

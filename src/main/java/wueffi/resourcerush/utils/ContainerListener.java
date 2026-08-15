@@ -1,4 +1,4 @@
-package wueffi.survivalEvent.utils;
+package wueffi.resourcerush.utils;
 
 import net.kyori.adventure.text.Component;
 import org.bukkit.Nameable;

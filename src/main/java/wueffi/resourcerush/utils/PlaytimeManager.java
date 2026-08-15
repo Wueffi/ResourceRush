@@ -1,6 +1,7 @@
-package wueffi.survivalEvent.utils;
+package wueffi.resourcerush.utils;
 
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -85,7 +86,7 @@ public final class PlaytimeManager {
                     playerDates.put(uuid, todayStr);
                     secondsToday.merge(uuid, 1L, Long::sum);
                     if (secondsToday.get(uuid) >= 7200) {
-                        World spawnWorld = Bukkit.getWorld("world");
+                        World spawnWorld = Bukkit.getWorld("lobby");
 
                         if (spawnWorld == null) {
                             return;

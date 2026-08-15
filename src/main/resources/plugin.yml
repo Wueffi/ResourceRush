@@ -1,17 +1,17 @@
-name: SurvivalEvent
-version: '1.0-SNAPSHOT'
-main: wueffi.survivalEvent.SurvivalEvent
+name: ResourceRush
+version: '1.0'
+main: wueffi.resourcerush.ResourceRush
 api-version: '1.21'
 load: POSTWORLD
 authors: [ "Waffle [Wueffi]" ]
-description: Plugin for the 1000x1000 Map Survival Event
+description: Plugin for the Collab-a-ton 1000x1000 ResourceRush Event
 
 commands:
   playtime:
     description: Check your own playtime for today.
     usage: /playtime
   check:
-    description: Check another player's playtime.
+    description: Check another player's score.
     usage: /check <player>
   start:
     description: Start playing the survival event.

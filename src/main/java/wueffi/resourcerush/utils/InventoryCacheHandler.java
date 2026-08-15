@@ -1,4 +1,4 @@
-package wueffi.survivalEvent.utils;
+package wueffi.resourcerush.utils;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;

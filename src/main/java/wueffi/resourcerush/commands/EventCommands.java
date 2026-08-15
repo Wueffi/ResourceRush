@@ -1,6 +1,7 @@
-package wueffi.survivalEvent.commands;
+package wueffi.resourcerush.commands;
 
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.Command;
@@ -8,9 +9,9 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
-import wueffi.survivalEvent.utils.LocationHandler;
-import wueffi.survivalEvent.utils.PlayerPointsStore;
-import wueffi.survivalEvent.utils.PlaytimeManager;
+import wueffi.resourcerush.utils.LocationHandler;
+import wueffi.resourcerush.utils.PlayerPointsStore;
+import wueffi.resourcerush.utils.PlaytimeManager;
 
 import java.util.List;
 import java.util.Map;

@@ -1,9 +1,6 @@
-package wueffi.survivalEvent.utils;
+package wueffi.resourcerush.utils;
 
-import org.bukkit.Bukkit;
-import org.bukkit.World;
-import org.bukkit.WorldBorder;
-import org.bukkit.WorldCreator;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 
 public class WorldSetup {

@@ -1,20 +1,20 @@
-package wueffi.survivalEvent;
+package wueffi.resourcerush;
 
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import wueffi.survivalEvent.commands.EventCommands;
-import wueffi.survivalEvent.utils.*;
+import wueffi.resourcerush.commands.EventCommands;
+import wueffi.resourcerush.utils.*;
 
 import java.util.List;
 
-public final class SurvivalEvent extends JavaPlugin {
-    public Logger LOGGER = LoggerFactory.getLogger("SurvivalEvent");
+public final class ResourceRush extends JavaPlugin {
+    public Logger LOGGER = LoggerFactory.getLogger("ResourceRush");
 
     @Override
     public void onEnable() {
-        LOGGER.info("Starting up SurvivalEvent");
+        LOGGER.info("Starting up ResourceRush");
 
         if (WorldSetup.setup()) LOGGER.info("Succesfully set up worlds!");
         else LOGGER.info("Failed to set up worlds!");
@@ -47,6 +47,8 @@ public final class SurvivalEvent extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new InventoryCacheListener(this), this);
         LOGGER.info("InventoryCacheHandler initialized!");
 
+        GameModeHandler.init(this);
+        LOGGER.info("GameModeHandler initialized!");
 
         ModManager.init(this);
         LOGGER.info("ModManager initialized!");
@@ -82,5 +84,8 @@ public final class SurvivalEvent extends JavaPlugin {
 
         DiscordWebhook.shutdown();
         LOGGER.info("Webhook shutdown!");
+
+        GameModeHandler.shutdown();
+        LOGGER.info("GameModeHandler shutdown!");
     }
 }
