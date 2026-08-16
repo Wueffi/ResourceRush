@@ -51,7 +51,7 @@ public class GameModeHandler {
 
             for (Player player : lobby.getPlayers()){
                 if (ModManager.isModerator(player.getName())) continue;
-                if (player.getGameMode() != GameMode.ADVENTURE) player.setGameMode(GameMode.SURVIVAL);
+                if (player.getGameMode() != GameMode.ADVENTURE) player.setGameMode(GameMode.ADVENTURE);
             }
         }, 1, 1);
     }
