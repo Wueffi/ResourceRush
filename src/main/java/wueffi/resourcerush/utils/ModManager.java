@@ -41,13 +41,7 @@ public final class ModManager {
 
         config = YamlConfiguration.loadConfiguration(configFile);
 
-        if (!config.isConfigurationSection("moderators")) return;
-
-        for (String name : config.getConfigurationSection("moderators").getKeys(false)) {
-            try {
-                playerNames.add(name);
-            } catch (IllegalArgumentException ignored) {
-            }
-        }
+        List<String> names = config.getStringList("moderators");
+        playerNames.addAll(names);
     }
 }
