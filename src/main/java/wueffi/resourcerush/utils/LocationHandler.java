@@ -39,6 +39,8 @@ public final class LocationHandler {
 
     public static void saveLocation(Player player) {
         Location loc = player.getLocation();
+        if (loc.getWorld().getName().equals("lobby")) return;
+
         String path = "locations." + player.getUniqueId();
 
         config.set(path + ".x", loc.getX());
@@ -67,6 +69,15 @@ public final class LocationHandler {
         float yaw = (float) config.getDouble(path + ".yaw");
         float pitch = (float) config.getDouble(path + ".pitch");
         World world = Bukkit.getWorld(config.getString(path + ".world"));
+
+        if (config.getString(path + ".world").equals("lobby")) {
+            world = Bukkit.getWorld("world");
+            x = world.getSpawnLocation().x();
+            y = world.getSpawnLocation().x();
+            z = world.getSpawnLocation().x();
+            yaw = world.getSpawnLocation().getYaw();
+            pitch = world.getSpawnLocation().getPitch();
+        }
 
         return new Location(world, x, y, z, yaw, pitch);
     }
