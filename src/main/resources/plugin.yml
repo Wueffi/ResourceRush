@@ -1,5 +1,5 @@
 name: ResourceRush
-version: '1.0'
+version: '1.1-SNAPSHOT'
 main: wueffi.resourcerush.ResourceRush
 api-version: '1.21'
 load: POSTWORLD
@@ -22,3 +22,5 @@ commands:
   leaderboard:
     description: Show the leaderboard of the survival event.
     usage: /leaderboard <integer>
+  hologram:
+    description: Add leaderboard holograms

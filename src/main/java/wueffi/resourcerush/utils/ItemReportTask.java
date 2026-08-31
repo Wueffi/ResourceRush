@@ -175,22 +175,22 @@ public final class ItemReportTask {
         TRACKED.add(new TrackedItem("Wither Skeleton Skull", Material.WITHER_SKELETON_SKULL, 1));
         TRACKED.add(new TrackedItem("Zombie Head", Material.ZOMBIE_HEAD, 1));
 
-        TRACKED.add(new TrackedItem("White Wool", Material.WHITE_WOOL, 1));
-        TRACKED.add(new TrackedItem("Orange Wool", Material.ORANGE_WOOL, 1));
-        TRACKED.add(new TrackedItem("Magenta Wool", Material.MAGENTA_WOOL, 1));
-        TRACKED.add(new TrackedItem("Light Blue Wool", Material.LIGHT_BLUE_WOOL, 1));
-        TRACKED.add(new TrackedItem("Yellow Wool", Material.YELLOW_WOOL, 1));
-        TRACKED.add(new TrackedItem("Lime Wool", Material.LIME_WOOL, 1));
-        TRACKED.add(new TrackedItem("Pink Wool", Material.PINK_WOOL, 1));
-        TRACKED.add(new TrackedItem("Gray Wool", Material.GRAY_WOOL, 1));
-        TRACKED.add(new TrackedItem("Light Gray Wool", Material.LIGHT_GRAY_WOOL, 1));
-        TRACKED.add(new TrackedItem("Cyan Wool", Material.CYAN_WOOL, 1));
-        TRACKED.add(new TrackedItem("Purple Wool", Material.PURPLE_WOOL, 1));
-        TRACKED.add(new TrackedItem("Blue Wool", Material.BLUE_WOOL, 1));
-        TRACKED.add(new TrackedItem("Brown Wool", Material.BROWN_WOOL, 1));
-        TRACKED.add(new TrackedItem("Green Wool", Material.GREEN_WOOL, 1));
-        TRACKED.add(new TrackedItem("Red Wool", Material.RED_WOOL, 1));
-        TRACKED.add(new TrackedItem("Black Wool", Material.BLACK_WOOL, 1));
+        TRACKED.add(new TrackedItem("Wool", Material.WHITE_WOOL, 1));
+        TRACKED.add(new TrackedItem("Wool", Material.ORANGE_WOOL, 1));
+        TRACKED.add(new TrackedItem("Wool", Material.MAGENTA_WOOL, 1));
+        TRACKED.add(new TrackedItem("Wool", Material.LIGHT_BLUE_WOOL, 1));
+        TRACKED.add(new TrackedItem("Wool", Material.YELLOW_WOOL, 1));
+        TRACKED.add(new TrackedItem("Wool", Material.LIME_WOOL, 1));
+        TRACKED.add(new TrackedItem("Wool", Material.PINK_WOOL, 1));
+        TRACKED.add(new TrackedItem("Wool", Material.GRAY_WOOL, 1));
+        TRACKED.add(new TrackedItem("Wool", Material.LIGHT_GRAY_WOOL, 1));
+        TRACKED.add(new TrackedItem("Wool", Material.CYAN_WOOL, 1));
+        TRACKED.add(new TrackedItem("Wool", Material.PURPLE_WOOL, 1));
+        TRACKED.add(new TrackedItem("Wool", Material.BLUE_WOOL, 1));
+        TRACKED.add(new TrackedItem("Wool", Material.BROWN_WOOL, 1));
+        TRACKED.add(new TrackedItem("Wool", Material.GREEN_WOOL, 1));
+        TRACKED.add(new TrackedItem("Wool", Material.RED_WOOL, 1));
+        TRACKED.add(new TrackedItem("Wool", Material.BLACK_WOOL, 1));
 
         for (TrackedItem item : TRACKED) {
             TRACKED_MAP.put(item.material(), item);

@@ -1,7 +1,6 @@
 package wueffi.resourcerush.commands;
 
 import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.Command;
@@ -153,7 +152,7 @@ public final class EventCommands implements CommandExecutor, TabCompleter {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        if (!(command.getName().equalsIgnoreCase("check") || command.getName().equalsIgnoreCase("leaderboard")) || args.length != 1) return List.of();
+        if (!(command.getName().equalsIgnoreCase("check") || command.getName().equalsIgnoreCase("leaderboard") || command.getName().equalsIgnoreCase("hologram")) || args.length != 1) return List.of();
         if (command.getName().equalsIgnoreCase("check")) {
             String partial = args[0].toLowerCase();
             return Bukkit.getOnlinePlayers().stream()

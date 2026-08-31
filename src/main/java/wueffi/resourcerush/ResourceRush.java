@@ -1,10 +1,12 @@
 package wueffi.resourcerush;
 
 import org.bukkit.Bukkit;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import wueffi.resourcerush.commands.EventCommands;
+import wueffi.resourcerush.commands.HologramCommand;
 import wueffi.resourcerush.utils.*;
 
 import java.util.List;
@@ -56,7 +58,14 @@ public final class ResourceRush extends JavaPlugin {
         DiscordWebhook.init(this);
         LOGGER.info("Webhook initialized!");
 
+        Holograms.init(this);
+        LOGGER.info("Holograms initialized!");
+
         EventCommands handler = new EventCommands();
+        HologramCommand holohandler = new HologramCommand();
+        PluginCommand holoCommand = getCommand("hologram");
+        holoCommand.setExecutor(holohandler);
+        holoCommand.setTabCompleter(holohandler);
         for (String cmd : List.of("playtime", "check", "start", "end", "leaderboard")) {
             var pluginCmd = getCommand(cmd);
             pluginCmd.setExecutor(handler);
@@ -87,5 +96,8 @@ public final class ResourceRush extends JavaPlugin {
 
         GameModeHandler.shutdown();
         LOGGER.info("GameModeHandler shutdown!");
+
+        Holograms.shutdown();
+        LOGGER.info("Holograms shutdown!");
     }
 }
