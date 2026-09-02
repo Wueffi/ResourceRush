@@ -43,6 +43,7 @@ public final class ResourceRush extends JavaPlugin {
 
         DroppedItemHandler.init(this);
         getServer().getPluginManager().registerEvents(new DroppedItemListener(), this);
+        getServer().getPluginManager().registerEvents(new LobbyListener(), this);
         LOGGER.info("DroppedItemHandler initialized!");
 
         InventoryCacheHandler.init(this);
@@ -66,7 +67,7 @@ public final class ResourceRush extends JavaPlugin {
         PluginCommand holoCommand = getCommand("hologram");
         holoCommand.setExecutor(holohandler);
         holoCommand.setTabCompleter(holohandler);
-        for (String cmd : List.of("playtime", "check", "start", "end", "leaderboard")) {
+        for (String cmd : List.of("playtime", "check", "start", "end", "leaderboard", "points")) {
             var pluginCmd = getCommand(cmd);
             pluginCmd.setExecutor(handler);
             pluginCmd.setTabCompleter(handler);

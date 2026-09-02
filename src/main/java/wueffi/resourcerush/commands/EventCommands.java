@@ -8,6 +8,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+import wueffi.resourcerush.utils.ItemReportTask;
 import wueffi.resourcerush.utils.LocationHandler;
 import wueffi.resourcerush.utils.PlayerPointsStore;
 import wueffi.resourcerush.utils.PlaytimeManager;
@@ -27,6 +28,7 @@ public final class EventCommands implements CommandExecutor, TabCompleter {
             case "start" -> handleStart(sender);
             case "end" -> handleEnd(sender);
             case "leaderboard" -> handleLeaderboard(sender, args);
+            case "points" -> handlePoints(sender);
             default -> false;
         };
     }
@@ -147,6 +149,23 @@ public final class EventCommands implements CommandExecutor, TabCompleter {
         if (top.isEmpty()) {
             sender.sendMessage("No leaderboard players yet!");
         }
+        return true;
+    }
+
+    private boolean handlePoints(CommandSender sender) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage("Only players can use this command.");
+            return true;
+        }
+
+        double score = PlayerPointsStore.get(player.getUniqueId());
+        String pts = String.format("%.2f", score);
+
+        player.sendMessage("§6 == Your Points: " + pts + "==");
+        for (Map.Entry<String, Double> entry : ItemReportTask.getItems(player.getUniqueId())) {
+            player.sendMessage("§7- §f" + entry.getKey() + "§7: §6" + String.format("%.2f", entry.getValue()));
+        }
+
         return true;
     }
 

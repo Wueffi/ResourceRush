@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public final class ItemReportTask {
@@ -29,6 +30,8 @@ public final class ItemReportTask {
     private record TrackedItem(String key, Material material, int weight) {}
     private static final List<TrackedItem> TRACKED = new ArrayList<>();
     private static final Map<Material, TrackedItem> TRACKED_MAP = new EnumMap<>(Material.class);
+    private static final Map<UUID, List<Map.Entry<String, Double>>> LAST_ITEM_SCORES = new ConcurrentHashMap<>();
+
 
     static {
         TRACKED.add(new TrackedItem("Amethyst Shard", Material.AMETHYST_SHARD, 1));
@@ -59,13 +62,13 @@ public final class ItemReportTask {
         TRACKED.add(new TrackedItem("Quartz", Material.QUARTZ_BLOCK, 4));
         TRACKED.add(new TrackedItem("Glowstone Dust", Material.GLOWSTONE, 4));
 
-        TRACKED.add(new TrackedItem("Raw Iron", Material.RAW_IRON, 1));
-        TRACKED.add(new TrackedItem("Raw Gold", Material.RAW_GOLD, 1));
-        TRACKED.add(new TrackedItem("Raw Copper", Material.RAW_COPPER, 1));
+        TRACKED.add(new TrackedItem("Iron Ingot", Material.RAW_IRON, 1));
+        TRACKED.add(new TrackedItem("Gold Ingot", Material.RAW_GOLD, 1));
+        TRACKED.add(new TrackedItem("Copper Ingot", Material.RAW_COPPER, 1));
 
-        TRACKED.add(new TrackedItem("Raw Iron", Material.RAW_IRON_BLOCK, 9));
-        TRACKED.add(new TrackedItem("Raw Gold", Material.RAW_GOLD_BLOCK, 9));
-        TRACKED.add(new TrackedItem("Raw Copper", Material.RAW_COPPER_BLOCK, 9));
+        TRACKED.add(new TrackedItem("Iron Ingot", Material.RAW_IRON_BLOCK, 9));
+        TRACKED.add(new TrackedItem("Gold Ingot", Material.RAW_GOLD_BLOCK, 9));
+        TRACKED.add(new TrackedItem("Copper Ingot", Material.RAW_COPPER_BLOCK, 9));
 
         TRACKED.add(new TrackedItem("Coal", Material.COAL_ORE, 1));
         TRACKED.add(new TrackedItem("Coal", Material.DEEPSLATE_COAL_ORE, 1));
@@ -138,7 +141,6 @@ public final class ItemReportTask {
         TRACKED.add(new TrackedItem("Bone", Material.BONE, 1));
         TRACKED.add(new TrackedItem("Bone Meal", Material.BONE_MEAL, 1));
         TRACKED.add(new TrackedItem("Breeze Rod", Material.BREEZE_ROD, 1));
-        TRACKED.add(new TrackedItem("Egg", Material.EGG, 1));
         TRACKED.add(new TrackedItem("Ender Pearl", Material.ENDER_PEARL, 1));
         TRACKED.add(new TrackedItem("Feather", Material.FEATHER, 1));
         TRACKED.add(new TrackedItem("Ghast Tear", Material.GHAST_TEAR, 1));
@@ -163,10 +165,7 @@ public final class ItemReportTask {
         TRACKED.add(new TrackedItem("Seagrass", Material.SEAGRASS, 1));
         TRACKED.add(new TrackedItem("Shulker Shell", Material.SHULKER_SHELL, 1));
         TRACKED.add(new TrackedItem("Slime Ball", Material.SLIME_BALL, 1));
-        TRACKED.add(new TrackedItem("Snowball", Material.SNOWBALL, 1));
-        TRACKED.add(new TrackedItem("Stick", Material.STICK, 1));
         TRACKED.add(new TrackedItem("String", Material.STRING, 1));
-        TRACKED.add(new TrackedItem("Sugar", Material.SUGAR, 1));
         TRACKED.add(new TrackedItem("Torchflower Seeds", Material.TORCHFLOWER_SEEDS, 1));
         TRACKED.add(new TrackedItem("Totem Of Undying", Material.TOTEM_OF_UNDYING, 1));
         TRACKED.add(new TrackedItem("Trident", Material.TRIDENT, 1));
@@ -301,8 +300,10 @@ public final class ItemReportTask {
 
     private static Map<UUID, Double> calculateScores(Map<String, Map<UUID, Integer>> items) {
         Map<UUID, Double> scores = new LinkedHashMap<>();
+        Map<UUID, Map<String, Double>> perItemScores = new LinkedHashMap<>();
 
         for (Map.Entry<String, Map<UUID, Integer>> itemEntry : items.entrySet()) {
+            String itemKey = itemEntry.getKey();
             Map<UUID, Integer> playerAmounts = itemEntry.getValue();
             double S_k = playerAmounts.values().stream().mapToDouble(Integer::doubleValue).sum();
 
@@ -311,11 +312,28 @@ public final class ItemReportTask {
             double weightedTotal = Math.pow(S_k, 0.5);
 
             for (Map.Entry<UUID, Integer> e : playerAmounts.entrySet()) {
+                if (e.getValue() == 0) continue;
+
                 double w_i_k = e.getValue() / S_k;
-                scores.merge(e.getKey(), w_i_k * weightedTotal, Double::sum);
+                double itemScore = w_i_k * weightedTotal;
+
+                scores.merge(e.getKey(), itemScore, Double::sum);
+                perItemScores.computeIfAbsent(e.getKey(), k -> new LinkedHashMap<>())
+                        .merge(itemKey, itemScore, Double::sum);
             }
         }
+
+        for (Map.Entry<UUID, Map<String, Double>> entry : perItemScores.entrySet()) {
+            List<Map.Entry<String, Double>> sorted = new ArrayList<>(entry.getValue().entrySet());
+            sorted.sort((a, b) -> Double.compare(b.getValue(), a.getValue()));
+            LAST_ITEM_SCORES.put(entry.getKey(), sorted);
+        }
+
         return scores;
+    }
+
+    public static List<Map.Entry<String, Double>> getItems(UUID uuid) {
+        return LAST_ITEM_SCORES.getOrDefault(uuid, Collections.emptyList());
     }
 
     static Map<String, Integer> scanAllWorlds() {

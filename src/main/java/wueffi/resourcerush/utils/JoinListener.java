@@ -16,7 +16,10 @@ public class JoinListener implements Listener {
         World lobby = Bukkit.getWorld("lobby");
         Player player = event.getPlayer();
 
-        if (!player.hasPlayedBefore()) {
+        long firstPlayed = player.getFirstPlayed();
+        long lastLogin = player.getLastLogin();
+
+        if (firstPlayed == 0 || (lastLogin - firstPlayed) < 500) {
             player.sendMessage(Component.text("Welcome to Resource Rush! Good Luck & Have Fun!").color(NamedTextColor.GOLD));
             assert lobby != null;
             player.teleport(lobby.getSpawnLocation());

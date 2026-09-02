@@ -16,18 +16,13 @@ import wueffi.resourcerush.commands.EventCommands;
 import java.util.*;
 
 public final class PlaytimeScoreboard {
-    private static final long TICK_INTERVAL = 20L;
-    private static final int SNAPSHOT_INTERVAL = 300;
-    private static final int VIEW_COUNT = 3;
+    private static final long TICK_INTERVAL = 60*20L;
 
     private static JavaPlugin plugin;
     private static BukkitTask updateTask;
 
-    private static int tickCounter = 0;
-    private static int viewIndex = 0;
-    private static Map<String, Integer> globalItemTotals = new LinkedHashMap<>();
-
-    private PlaytimeScoreboard() {}
+    private PlaytimeScoreboard() {
+    }
 
     public static void init(JavaPlugin javaPlugin) {
         plugin = javaPlugin;
@@ -46,22 +41,10 @@ public final class PlaytimeScoreboard {
 
     private static void startUpdateTask() {
         updateTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            tickCounter++;
-            if (tickCounter == 1 || tickCounter % SNAPSHOT_INTERVAL == 0) {
-                refreshSnapshot();
-            }
-            if (tickCounter > 1 && tickCounter % 5 == 0) {
-                viewIndex = (viewIndex + 1) % VIEW_COUNT;
-            }
-
             for (Player player : Bukkit.getOnlinePlayers()) {
                 update(player);
             }
         }, TICK_INTERVAL, TICK_INTERVAL);
-    }
-
-    private static void refreshSnapshot() {
-        globalItemTotals = ItemReportTask.scanAllWorlds();
     }
 
     public static void update(Player player) {
@@ -72,12 +55,7 @@ public final class PlaytimeScoreboard {
 
         new ArrayList<>(board.getObjectives()).forEach(Objective::unregister);
 
-        Component title = switch (viewIndex) {
-            case 0 -> Component.text("Leaderboard").color(NamedTextColor.GOLD).decorate(TextDecoration.BOLD);
-            case 1 -> Component.text("Top Items").color(NamedTextColor.AQUA).decorate(TextDecoration.BOLD);
-            case 2 -> Component.text("Rare Items").color(NamedTextColor.RED).decorate(TextDecoration.BOLD);
-            default -> Component.text("Survival Event").color(NamedTextColor.GOLD).decorate(TextDecoration.BOLD);
-        };
+        Component title = Component.text("Leaderboard").color(NamedTextColor.GOLD).decorate(TextDecoration.BOLD);
 
         Objective obj = board.registerNewObjective("playtime", Criteria.DUMMY, title);
         obj.setDisplaySlot(DisplaySlot.SIDEBAR);
@@ -94,11 +72,7 @@ public final class PlaytimeScoreboard {
         obj.getScore("§7Your points:").setScore(5);
         obj.getScore("§8──────────────").setScore(6);
 
-        switch (viewIndex) {
-            case 0 -> buildLeaderboard(obj, 7);
-            case 1 -> buildMostCollected(obj, 7);
-            case 2 -> buildLeastCollected(obj, 7);
-        }
+        buildLeaderboard(obj, 7);
 
         player.setScoreboard(board);
     }
@@ -113,29 +87,6 @@ public final class PlaytimeScoreboard {
             Map.Entry<UUID, Double> e = top.get(i);
             String name = PlayerPointsStore.getName(e.getKey());
             obj.getScore(prefix[i] + "§f" + name + " §e" + String.format("%.2f", e.getValue())).setScore(base + count - 1 - i);
-        }
-    }
-
-    private static void buildMostCollected(Objective obj, int base) {
-        List<Map.Entry<String, Integer>> sorted = new ArrayList<>(globalItemTotals.entrySet());
-        sorted.sort((a, b) -> Integer.compare(b.getValue(), a.getValue()));
-
-        int count = Math.min(sorted.size(), 5);
-
-        for (int i = 0; i < count; i++) {
-            Map.Entry<String, Integer> e = sorted.get(i);
-            obj.getScore("§b#" + (i + 1) + " " + e.getKey() + "§7: §f" + e.getValue()).setScore(base + count - 1 - i);
-        }
-    }
-
-    private static void buildLeastCollected(Objective obj, int base) {
-        List<Map.Entry<String, Integer>> entries = new ArrayList<>(globalItemTotals.entrySet());
-        entries.sort(Map.Entry.comparingByValue());
-
-        int count = Math.min(entries.size(), 5);
-        for (int i = 0; i < count; i++) {
-            Map.Entry<String, Integer> e = entries.get(i);
-            obj.getScore("§c#" + (i + 1) + " " + e.getKey() + "§7: §f" + e.getValue()).setScore(base + count - 1 - i);
         }
     }
 }

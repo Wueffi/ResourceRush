@@ -24,3 +24,7 @@ commands:
     usage: /leaderboard <integer>
   hologram:
     description: Add leaderboard holograms
+    usage: /hologram <set|remove> <1|2|3>
+  points:
+    description: Shows a distribution of your points
+    usage: /points
