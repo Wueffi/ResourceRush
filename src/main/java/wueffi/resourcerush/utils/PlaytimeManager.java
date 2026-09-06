@@ -92,6 +92,8 @@ public final class PlaytimeManager {
                             return;
                         }
 
+                        LocationHandler.saveLocation(player);
+
                         player.teleport(spawnWorld.getSpawnLocation());
                         player.sendMessage("§cYou have used all of your playtime for today! Come back tommorow");
                     }
