@@ -101,7 +101,7 @@ public final class DiscordWebhook {
         StringBuilder description = new StringBuilder();
 
         List<Map.Entry<String, Integer>> items = new ArrayList<>(totals.entrySet());
-        items.sort(Map.Entry.comparingByKey());
+        items.sort(Map.Entry.<String, Integer>comparingByValue().reversed().thenComparing(Map.Entry.comparingByKey()));
 
         for (Map.Entry<String, Integer> entry : items) {
             description.append("**")
