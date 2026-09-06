@@ -16,7 +16,7 @@ public class WorldSetup {
             if (overworld != null) {
                 WorldBorder border = overworld.getWorldBorder();
                 border.setCenter(overworld.getSpawnLocation());
-                border.setSize(2048);
+                border.setSize(3206);
             }
 
             if (nether != null) {

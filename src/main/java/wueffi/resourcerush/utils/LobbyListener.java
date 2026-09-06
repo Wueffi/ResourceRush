@@ -8,6 +8,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryEvent;
@@ -90,6 +91,15 @@ public class LobbyListener implements Listener {
         if (event.getDamager() instanceof Player) {
             Player damager = (Player) event.getDamager();
             if (damager.getWorld().getName().equals("lobby")) {
+                event.setCancelled(true);
+            }
+        }
+    }
+
+    @EventHandler
+    public void onRegainHealth(EntityRegainHealthEvent event) {
+        if (event.getEntity() instanceof Player player) {
+            if (player.getWorld().getName().equals("lobby")) {
                 event.setCancelled(true);
             }
         }

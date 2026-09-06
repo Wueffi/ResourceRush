@@ -54,6 +54,7 @@ public final class InventoryCacheHandler {
         return getInventory(uuid.toString());
     }
 
+    @SuppressWarnings("unchecked")
     public static ItemStack[] getInventory(String uuid) {
         config = YamlConfiguration.loadConfiguration(file);
 
@@ -70,6 +71,13 @@ public final class InventoryCacheHandler {
 
             if (obj instanceof ItemStack item) {
                 items[i] = item;
+            } else if (obj instanceof Map<?, ?> map) {
+                try {
+                    items[i] = ItemStack.deserialize((Map<String, Object>) map);
+                } catch (Exception e) {
+                    plugin.getLogger().warning(e.getMessage());
+                    items[i] = null;
+                }
             }
         }
 
@@ -77,7 +85,9 @@ public final class InventoryCacheHandler {
     }
 
     public static Set<UUID> getAllOwners() {
-        if (config == null || !config.isConfigurationSection("inventories")) {
+        config = YamlConfiguration.loadConfiguration(file);
+
+        if (!config.isConfigurationSection("inventories")) {
             return Set.of();
         }
 

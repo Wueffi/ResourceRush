@@ -1,16 +1,16 @@
 package wueffi.resourcerush.utils;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import com.destroystokyo.paper.utils.PaperPluginLogger;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.Container;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BundleMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -25,12 +25,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public final class ItemReportTask {
     private static final long INTERVAL_TICKS = 20L * 300;
-    private static final DateTimeFormatter TIMESTAMP_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final DateTimeFormatter TIMESTAMP_FMT = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
 
     private record TrackedItem(String key, Material material, int weight) {}
     private static final List<TrackedItem> TRACKED = new ArrayList<>();
     private static final Map<Material, TrackedItem> TRACKED_MAP = new EnumMap<>(Material.class);
     private static final Map<UUID, List<Map.Entry<String, Double>>> LAST_ITEM_SCORES = new ConcurrentHashMap<>();
+    private static final Set<Inventory> processedInventories = Collections.newSetFromMap(new IdentityHashMap<>());
 
 
     static {
@@ -235,10 +236,9 @@ public final class ItemReportTask {
 
         for (UUID uuid : getAllTrackedOwners()) {
             String name = Bukkit.getOfflinePlayer(uuid).getName();
-            if (name == null) continue;
+            if (name != null) playerNames.put(uuid, name);
 
             Map<String, Integer> counts = playerCounts.computeIfAbsent(uuid, k -> zeroCounts());
-            playerNames.put(uuid, name);
 
             Player online = Bukkit.getPlayer(uuid);
 
@@ -255,7 +255,13 @@ public final class ItemReportTask {
                     continue;
                 }
 
-                addCounts(container.getInventory().getContents(), counts);
+                Inventory inventory = container.getInventory();
+
+                if (!processedInventories.add(inventory)) {
+                    continue;
+                }
+
+                addCounts(inventory.getContents(), counts);
             }
 
             addEntityContainerCounts(uuid, counts);
@@ -292,7 +298,21 @@ public final class ItemReportTask {
 
             PlayerPointsStore.set(uuid, name, pts);
 
-            writeRow(idCounter.getAndIncrement(), name, timestamp, pts, entry.getValue());
+            String locStr = "Location{N/A}";
+            Player player = Bukkit.getPlayer(uuid);
+            OfflinePlayer offPlayer = Bukkit.getOfflinePlayer(uuid);
+
+            if (player != null) {
+                Location location = player.getLocation();
+                locStr = location.toString();
+            }
+            if (offPlayer != null) {
+                Location location = offPlayer.getLocation();
+                assert location != null;
+                locStr = location.toString();
+            }
+
+            writeRow(idCounter.getAndIncrement(), name, timestamp, locStr, pts, entry.getValue());
         }
 
         PlayerPointsStore.save();
@@ -387,12 +407,30 @@ public final class ItemReportTask {
         return counts;
     }
 
-    private static void addCounts(ItemStack[] items, Map<String, Integer> counts) {
-        Map<String, Integer> nuggetBuffer = new HashMap<>();
+    private static List<ItemStack> flattenBundles(ItemStack[] items) {
+        List<ItemStack> result = new ArrayList<>();
 
         for (ItemStack item : items) {
             if (item == null) continue;
 
+            if (item.getItemMeta() instanceof BundleMeta bundleMeta) {
+                List<ItemStack> bundleContents = bundleMeta.getItems();
+                if (!bundleContents.isEmpty()) {
+                    result.addAll(flattenBundles(bundleContents.toArray(new ItemStack[0])));
+                }
+            } else {
+                result.add(item);
+            }
+        }
+
+        return result;
+    }
+
+    private static void addCounts(ItemStack[] items, Map<String, Integer> counts) {
+        List<ItemStack> flattened = flattenBundles(items);
+        Map<String, Integer> nuggetBuffer = new HashMap<>();
+
+        for (ItemStack item : flattened) {
             TrackedItem tracked = TRACKED_MAP.get(item.getType());
             if (tracked == null) continue;
 
@@ -419,16 +457,19 @@ public final class ItemReportTask {
             Map<String, Integer> counts = playerCounts.get(owner);
             if (counts == null) continue;
 
-            ItemStack item = itemEntity.getItemStack();
-            TrackedItem tracked = TRACKED_MAP.get(item.getType());
-            if (tracked == null) continue;
+            List<ItemStack> flattened = flattenBundles(new ItemStack[]{itemEntity.getItemStack()});
 
-            if (item.getType() == Material.IRON_NUGGET) {
-                nuggetBuffers.computeIfAbsent(owner, k -> new HashMap<>()).merge("Iron Ingot", item.getAmount(), Integer::sum);
-            } else if (item.getType() == Material.GOLD_NUGGET) {
-                nuggetBuffers.computeIfAbsent(owner, k -> new HashMap<>()).merge("Gold Ingot", item.getAmount(), Integer::sum);
-            } else {
-                counts.merge(tracked.key(), item.getAmount() * tracked.weight(), Integer::sum);
+            for (ItemStack item : flattened) {
+                TrackedItem tracked = TRACKED_MAP.get(item.getType());
+                if (tracked == null) continue;
+
+                if (item.getType() == Material.IRON_NUGGET) {
+                    nuggetBuffers.computeIfAbsent(owner, k -> new HashMap<>()).merge("Iron Ingot", item.getAmount(), Integer::sum);
+                } else if (item.getType() == Material.GOLD_NUGGET) {
+                    nuggetBuffers.computeIfAbsent(owner, k -> new HashMap<>()).merge("Gold Ingot", item.getAmount(), Integer::sum);
+                } else {
+                    counts.merge(tracked.key(), item.getAmount() * tracked.weight(), Integer::sum);
+                }
             }
         }
 
@@ -455,16 +496,19 @@ public final class ItemReportTask {
             UUID owner = DroppedItemHandler.getOwner(itemEntity.getUniqueId());
             if (owner == null || !validOwners.contains(owner)) continue;
 
-            ItemStack item = itemEntity.getItemStack();
-            TrackedItem tracked = TRACKED_MAP.get(item.getType());
-            if (tracked == null) continue;
+            List<ItemStack> flattened = flattenBundles(new ItemStack[]{itemEntity.getItemStack()});
 
-            if (item.getType() == Material.IRON_NUGGET) {
-                nuggetBuffer.merge("Iron Ingot", item.getAmount(), Integer::sum);
-            } else if (item.getType() == Material.GOLD_NUGGET) {
-                nuggetBuffer.merge("Gold Ingot", item.getAmount(), Integer::sum);
-            } else {
-                totals.merge(tracked.key(), item.getAmount() * tracked.weight(), Integer::sum);
+            for (ItemStack item : flattened) {
+                TrackedItem tracked = TRACKED_MAP.get(item.getType());
+                if (tracked == null) continue;
+
+                if (item.getType() == Material.IRON_NUGGET) {
+                    nuggetBuffer.merge("Iron Ingot", item.getAmount(), Integer::sum);
+                } else if (item.getType() == Material.GOLD_NUGGET) {
+                    nuggetBuffer.merge("Gold Ingot", item.getAmount(), Integer::sum);
+                } else {
+                    totals.merge(tracked.key(), item.getAmount() * tracked.weight(), Integer::sum);
+                }
             }
         }
 
@@ -512,7 +556,8 @@ public final class ItemReportTask {
         for (UUID uuid : InventoryCacheHandler.getAllOwners()) {
             String name = Bukkit.getOfflinePlayer(uuid).getName();
 
-            if (name != null && !ModManager.isModerator(name)) {
+            if (name != null && ModManager.isModerator(name));
+            else {
                 owners.add(uuid);
             }
         }
@@ -524,13 +569,13 @@ public final class ItemReportTask {
         try (FileWriter fw = new FileWriter(csvFile, true)) {
             String header = TRACKED.stream().map(TrackedItem::key).distinct().reduce((a, b) -> a + "," + b).orElse("");
 
-            fw.write("id,playername,timestamp,points," + header + "\n");
+            fw.write("id,playername,timestamp,location,points," + header + "\n");
         }
     }
 
-    private static void writeRow(int id, String name, String timestamp, double points, Map<String, Integer> counts) {
+    private static void writeRow(int id, String name, String timestamp, String location, double points, Map<String, Integer> counts) {
         StringBuilder sb = new StringBuilder();
-        sb.append(id).append(",").append(name).append(",").append(timestamp).append(",").append(points);
+        sb.append(id).append(",").append(name).append(",").append(timestamp).append(",").append(location).append(",").append(points);
 
         for (String key : counts.keySet()) {
             sb.append(",").append(counts.getOrDefault(key, 0));

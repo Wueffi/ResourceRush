@@ -16,7 +16,7 @@ import wueffi.resourcerush.commands.EventCommands;
 import java.util.*;
 
 public final class PlaytimeScoreboard {
-    private static final long TICK_INTERVAL = 60*20L;
+    private static final long TICK_INTERVAL = 20L;
 
     private static JavaPlugin plugin;
     private static BukkitTask updateTask;
