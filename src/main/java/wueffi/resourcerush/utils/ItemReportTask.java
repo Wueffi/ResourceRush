@@ -4,12 +4,14 @@ import com.destroystokyo.paper.utils.PaperPluginLogger;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.Container;
+import org.bukkit.block.ShulkerBox;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.inventory.meta.BundleMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
@@ -407,7 +409,7 @@ public final class ItemReportTask {
         return counts;
     }
 
-    private static List<ItemStack> flattenBundles(ItemStack[] items) {
+    private static List<ItemStack> flattenItems(ItemStack[] items) {
         List<ItemStack> result = new ArrayList<>();
 
         for (ItemStack item : items) {
@@ -416,7 +418,13 @@ public final class ItemReportTask {
             if (item.getItemMeta() instanceof BundleMeta bundleMeta) {
                 List<ItemStack> bundleContents = bundleMeta.getItems();
                 if (!bundleContents.isEmpty()) {
-                    result.addAll(flattenBundles(bundleContents.toArray(new ItemStack[0])));
+                    result.addAll(flattenItems(bundleContents.toArray(new ItemStack[0])));
+                }
+            } else if (item.getItemMeta() instanceof BlockStateMeta blockStateMeta
+                    && blockStateMeta.getBlockState() instanceof ShulkerBox shulkerBox) {
+                ItemStack[] shulkerContents = shulkerBox.getInventory().getContents();
+                if (shulkerContents.length > 0) {
+                    result.addAll(flattenItems(shulkerContents));
                 }
             } else {
                 result.add(item);
@@ -427,7 +435,7 @@ public final class ItemReportTask {
     }
 
     private static void addCounts(ItemStack[] items, Map<String, Integer> counts) {
-        List<ItemStack> flattened = flattenBundles(items);
+        List<ItemStack> flattened = flattenItems(items);
         Map<String, Integer> nuggetBuffer = new HashMap<>();
 
         for (ItemStack item : flattened) {
@@ -457,7 +465,7 @@ public final class ItemReportTask {
             Map<String, Integer> counts = playerCounts.get(owner);
             if (counts == null) continue;
 
-            List<ItemStack> flattened = flattenBundles(new ItemStack[]{itemEntity.getItemStack()});
+            List<ItemStack> flattened = flattenItems(new ItemStack[]{itemEntity.getItemStack()});
 
             for (ItemStack item : flattened) {
                 TrackedItem tracked = TRACKED_MAP.get(item.getType());
@@ -496,7 +504,7 @@ public final class ItemReportTask {
             UUID owner = DroppedItemHandler.getOwner(itemEntity.getUniqueId());
             if (owner == null || !validOwners.contains(owner)) continue;
 
-            List<ItemStack> flattened = flattenBundles(new ItemStack[]{itemEntity.getItemStack()});
+            List<ItemStack> flattened = flattenItems(new ItemStack[]{itemEntity.getItemStack()});
 
             for (ItemStack item : flattened) {
                 TrackedItem tracked = TRACKED_MAP.get(item.getType());
