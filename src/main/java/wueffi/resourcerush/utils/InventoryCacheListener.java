@@ -19,11 +19,13 @@ public class InventoryCacheListener implements Listener {
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         InventoryCacheHandler.saveInventory(event.getPlayer());
+        EnderChestCacheHandler.saveEnderChest(event.getPlayer());
     }
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         InventoryCacheHandler.removeCache(event.getPlayer());
+        EnderChestCacheHandler.removeCache(event.getPlayer());
     }
 
     @EventHandler
@@ -32,6 +34,7 @@ public class InventoryCacheListener implements Listener {
 
         for (Player player : plugin.getServer().getOnlinePlayers()) {
             InventoryCacheHandler.saveInventory(player);
+            EnderChestCacheHandler.saveEnderChest(player);
         }
     }
 }

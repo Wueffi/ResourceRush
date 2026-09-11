@@ -66,7 +66,7 @@ public final class EventCommands implements CommandExecutor, TabCompleter {
             sender.sendMessage("§cYou have already used up your time for today. Come back tomorrow!");
             return true;
         }
-        sender.sendMessage("§eYou have §a" + formatSeconds(seconds) + "§e used today!");
+        sender.sendMessage("§eYou have used §a" + formatSeconds(seconds) + "§e today!");
 
         Location spawnLocation = LocationHandler.loadLocation(player);
         if (spawnLocation == null) {
@@ -87,7 +87,7 @@ public final class EventCommands implements CommandExecutor, TabCompleter {
     private boolean handleEnd(CommandSender sender) {
         Player player = ((Player) sender);
         long seconds = PlaytimeManager.getSecondsToday(player.getUniqueId());
-        sender.sendMessage("§eYou have §a" + formatSeconds(seconds) + "§e used today!");
+        sender.sendMessage("§eYou have used §a" + formatSeconds(seconds) + "§e today!");
 
         LocationHandler.saveLocation(player);
 

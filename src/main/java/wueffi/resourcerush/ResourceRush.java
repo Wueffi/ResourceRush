@@ -47,8 +47,9 @@ public final class ResourceRush extends JavaPlugin {
         LOGGER.info("DroppedItemHandler initialized!");
 
         InventoryCacheHandler.init(this);
+        EnderChestCacheHandler.init(this);
         getServer().getPluginManager().registerEvents(new InventoryCacheListener(this), this);
-        LOGGER.info("InventoryCacheHandler initialized!");
+        LOGGER.info("InventoryCacheHandler + EnderChestCacheHandler initialized!");
 
         GameModeHandler.init(this);
         LOGGER.info("GameModeHandler initialized!");

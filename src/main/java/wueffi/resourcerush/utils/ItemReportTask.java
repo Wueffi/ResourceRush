@@ -168,6 +168,7 @@ public final class ItemReportTask {
         TRACKED.add(new TrackedItem("Seagrass", Material.SEAGRASS, 1));
         TRACKED.add(new TrackedItem("Shulker Shell", Material.SHULKER_SHELL, 1));
         TRACKED.add(new TrackedItem("Slime Ball", Material.SLIME_BALL, 1));
+        TRACKED.add(new TrackedItem("Slime Ball", Material.SLIME_BLOCK, 9));
         TRACKED.add(new TrackedItem("String", Material.STRING, 1));
         TRACKED.add(new TrackedItem("Torchflower Seeds", Material.TORCHFLOWER_SEEDS, 1));
         TRACKED.add(new TrackedItem("Totem Of Undying", Material.TOTEM_OF_UNDYING, 1));
@@ -246,8 +247,10 @@ public final class ItemReportTask {
 
             if (online != null) {
                 addCounts(online.getInventory().getContents(), counts);
+                addCounts(online.getEnderChest().getContents(), counts);
             } else {
                 addCounts(InventoryCacheHandler.getInventory(uuid), counts);
+                addCounts(EnderChestCacheHandler.getEnderChest(uuid), counts);
             }
 
             for (Location loc : ContainerHandler.getContainersPerPlayer(uuid)) {
@@ -420,15 +423,18 @@ public final class ItemReportTask {
                 if (!bundleContents.isEmpty()) {
                     result.addAll(flattenItems(bundleContents.toArray(new ItemStack[0])));
                 }
-            } else if (item.getItemMeta() instanceof BlockStateMeta blockStateMeta
-                    && blockStateMeta.getBlockState() instanceof ShulkerBox shulkerBox) {
-                ItemStack[] shulkerContents = shulkerBox.getInventory().getContents();
-                if (shulkerContents.length > 0) {
+            } else if (item.getItemMeta() instanceof BlockStateMeta blockStateMeta) {
+            try {
+                if (blockStateMeta.getBlockState() instanceof ShulkerBox shulkerBox) {
+                    ItemStack[] shulkerContents = shulkerBox.getInventory().getContents();
                     result.addAll(flattenItems(shulkerContents));
+                } else {
+                    result.add(item);
                 }
-            } else {
+            } catch (Exception e) {
                 result.add(item);
             }
+        }
         }
 
         return result;
@@ -562,6 +568,15 @@ public final class ItemReportTask {
         }
 
         for (UUID uuid : InventoryCacheHandler.getAllOwners()) {
+            String name = Bukkit.getOfflinePlayer(uuid).getName();
+
+            if (name != null && ModManager.isModerator(name));
+            else {
+                owners.add(uuid);
+            }
+        }
+
+        for (UUID uuid : EnderChestCacheHandler.getAllOwners()) {
             String name = Bukkit.getOfflinePlayer(uuid).getName();
 
             if (name != null && ModManager.isModerator(name));
