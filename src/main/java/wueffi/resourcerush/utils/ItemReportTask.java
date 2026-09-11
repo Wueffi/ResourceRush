@@ -424,17 +424,19 @@ public final class ItemReportTask {
                     result.addAll(flattenItems(bundleContents.toArray(new ItemStack[0])));
                 }
             } else if (item.getItemMeta() instanceof BlockStateMeta blockStateMeta) {
-            try {
-                if (blockStateMeta.getBlockState() instanceof ShulkerBox shulkerBox) {
-                    ItemStack[] shulkerContents = shulkerBox.getInventory().getContents();
-                    result.addAll(flattenItems(shulkerContents));
-                } else {
+                try {
+                    if (blockStateMeta.getBlockState() instanceof ShulkerBox shulkerBox) {
+                        ItemStack[] shulkerContents = shulkerBox.getInventory().getContents();
+                        result.addAll(flattenItems(shulkerContents));
+                    } else {
+                        result.add(item);
+                    }
+                } catch (Exception e) {
                     result.add(item);
                 }
-            } catch (Exception e) {
+            } else {
                 result.add(item);
             }
-        }
         }
 
         return result;
