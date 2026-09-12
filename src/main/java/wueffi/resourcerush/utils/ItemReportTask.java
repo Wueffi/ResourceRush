@@ -34,7 +34,8 @@ public final class ItemReportTask {
     private static final Map<Material, TrackedItem> TRACKED_MAP = new EnumMap<>(Material.class);
     private static final Map<UUID, List<Map.Entry<String, Double>>> LAST_ITEM_SCORES = new ConcurrentHashMap<>();
     private static final Set<Inventory> processedInventories = Collections.newSetFromMap(new IdentityHashMap<>());
-
+    private static final Map<String, Map<String, Integer>> WORLD_TOTALS_CACHE = new ConcurrentHashMap<>();
+    private static final List<String> WORLD_NAMES = List.of("world", "world_nether", "world_the_end");
 
     static {
         TRACKED.add(new TrackedItem("Amethyst Shard", Material.AMETHYST_SHARD, 1));
@@ -234,8 +235,15 @@ public final class ItemReportTask {
     private static void run() {
         String timestamp = LocalDateTime.now().format(TIMESTAMP_FMT);
 
+        processedInventories.clear();
+
         Map<UUID, Map<String, Integer>> playerCounts = new LinkedHashMap<>();
         Map<UUID, String> playerNames = new LinkedHashMap<>();
+
+        Map<String, Map<String, Integer>> worldTotals = new LinkedHashMap<>();
+        for (String worldName : WORLD_NAMES) {
+            worldTotals.put(worldName, zeroCounts());
+        }
 
         for (UUID uuid : getAllTrackedOwners()) {
             String name = Bukkit.getOfflinePlayer(uuid).getName();
@@ -248,9 +256,20 @@ public final class ItemReportTask {
             if (online != null) {
                 addCounts(online.getInventory().getContents(), counts);
                 addCounts(online.getEnderChest().getContents(), counts);
+
+                Map<String, Integer> wt = worldTotals.get(online.getWorld().getName());
+                if (wt != null) {
+                    addCounts(online.getInventory().getContents(), wt);
+                }
             } else {
-                addCounts(InventoryCacheHandler.getInventory(uuid), counts);
+                ItemStack[] cachedInv = InventoryCacheHandler.getInventory(uuid);
+                addCounts(cachedInv, counts);
                 addCounts(EnderChestCacheHandler.getEnderChest(uuid), counts);
+
+                Map<String, Integer> wt = worldTotalsForOfflinePlayer(uuid, worldTotals);
+                if (wt != null) {
+                    addCounts(cachedInv, wt);
+                }
             }
 
             for (Location loc : ContainerHandler.getContainersPerPlayer(uuid)) {
@@ -267,17 +286,26 @@ public final class ItemReportTask {
                 }
 
                 addCounts(inventory.getContents(), counts);
+
+                Map<String, Integer> wt = worldTotals.get(loc.getWorld().getName());
+                if (wt != null) {
+                    addCounts(inventory.getContents(), wt);
+                }
             }
 
             addEntityContainerCounts(uuid, counts);
         }
 
-        for (String worldName : List.of("world", "world_nether", "world_the_end" )) {
+        for (String worldName : WORLD_NAMES) {
             World world = Bukkit.getWorld(worldName);
             if (world != null) {
                 addDroppedItemCounts(world, playerCounts);
+                addDroppedTotals(world, worldTotals.get(worldName));
             }
         }
+
+        WORLD_TOTALS_CACHE.clear();
+        WORLD_TOTALS_CACHE.putAll(worldTotals);
 
         Map<String, Map<UUID, Integer>> itemMatrix = new LinkedHashMap<>();
 
@@ -323,6 +351,14 @@ public final class ItemReportTask {
         PlayerPointsStore.save();
     }
 
+    private static Map<String, Integer> worldTotalsForOfflinePlayer(UUID uuid, Map<String, Map<String, Integer>> worldTotals) {
+        OfflinePlayer offline = Bukkit.getOfflinePlayer(uuid);
+        Location loc = offline.getLocation();
+        if (loc == null || loc.getWorld() == null) return null;
+
+        return worldTotals.get(loc.getWorld().getName());
+    }
+
     private static Map<UUID, Double> calculateScores(Map<String, Map<UUID, Integer>> items) {
         Map<UUID, Double> scores = new LinkedHashMap<>();
         Map<UUID, Map<String, Double>> perItemScores = new LinkedHashMap<>();
@@ -364,7 +400,7 @@ public final class ItemReportTask {
     static Map<String, Integer> scanAllWorlds() {
         Map<String, Integer> totals = zeroCounts();
 
-        for (String worldName : List.of( "world", "world_nether", "world_the_end")) {
+        for (String worldName : WORLD_NAMES) {
             World world = Bukkit.getWorld(worldName);
             if (world == null) continue;
 
@@ -379,22 +415,41 @@ public final class ItemReportTask {
     }
 
     static Map<String, Integer> scanWorld(World world) {
+        Map<String, Integer> cached = WORLD_TOTALS_CACHE.get(world.getName());
+        if (cached != null) {
+            return new LinkedHashMap<>(cached);
+        }
+        return scanWorldUncached(world);
+    }
+
+    static Map<String, Integer> scanWorldUncached(World world) {
         Map<String, Integer> totals = zeroCounts();
+        Set<Inventory> localProcessed = Collections.newSetFromMap(new IdentityHashMap<>());
 
         for (UUID uuid : getAllTrackedOwners()) {
             Player online = Bukkit.getPlayer(uuid);
 
-            if (online != null && online.getWorld().equals(world)) {
-                addCounts(online.getInventory().getContents(), totals);
-            } else if (online == null) {
-                addCounts(InventoryCacheHandler.getInventory(uuid), totals);
+            if (online != null) {
+                if (online.getWorld().equals(world)) {
+                    addCounts(online.getInventory().getContents(), totals);
+                }
+            } else {
+                OfflinePlayer offline = Bukkit.getOfflinePlayer(uuid);
+                Location loc = offline.getLocation();
+                if (loc != null && world.equals(loc.getWorld())) {
+                    addCounts(InventoryCacheHandler.getInventory(uuid), totals);
+                }
             }
 
             for (Location loc : ContainerHandler.getContainersPerPlayer(uuid)) {
-                if (!loc.getWorld().equals(world)) continue;
+                if (!world.equals(loc.getWorld())) continue;
                 Block block = loc.getBlock();
                 if (!(block.getState() instanceof Container container)) continue;
-                addCounts(container.getInventory().getContents(), totals);
+
+                Inventory inventory = container.getInventory();
+                if (!localProcessed.add(inventory)) continue;
+
+                addCounts(inventory.getContents(), totals);
             }
         }
 
@@ -544,7 +599,7 @@ public final class ItemReportTask {
     private static Set<UUID> getAllTrackedOwners() {
         Set<UUID> owners = new HashSet<>();
 
-        for (String worldName : List.of("world", "world_nether", "world_the_end" )) {
+        for (String worldName : WORLD_NAMES) {
             World world = Bukkit.getWorld(worldName);
             if (world == null) continue;
 
